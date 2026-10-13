@@ -1,3 +1,4 @@
+import { useTranslation, type SupportedLanguage } from "../../lib/i18n";
 import { platform } from "@yaakapp-internal/platform";
 import { useFonts } from "@yaakapp-internal/fonts";
 import { useLicense } from "@yaakapp-internal/license";
@@ -42,7 +43,7 @@ export function SettingsInterface() {
   const workspace = useAtomValue(activeWorkspaceAtom);
   const settings = useAtomValue(settingsAtom);
   const fonts = useFonts();
-
+  const { t, language, setLanguage } = useTranslation();
   if (settings == null || workspace == null) {
     return null;
   }
@@ -50,14 +51,29 @@ export function SettingsInterface() {
   return (
     <VStack space={1.5} className="mb-4">
       <div className="mb-3">
-        <Heading>Interface</Heading>
-        <p className="text-text-subtle">Tweak settings related to the user interface.</p>
+        <Heading>{t("settings.interface.title")}</Heading>
+        <p className="text-text-subtle">{t("settings.interface.description")}</p>
       </div>
       <SettingsList className="space-y-8">
-        <SettingsSection title="Workspaces">
+        <SettingsSection title={t("settings.interface.language")}>
           <SettingRowSelect
-            title="Open workspace behavior"
-            description="Choose what happens when opening another workspace."
+            title={t("settings.interface.language")}
+            description={t("settings.interface.language_desc")}
+            name="interfaceLanguage"
+            value={language}
+            onChange={(v) => setLanguage(v as SupportedLanguage)}
+            options={[
+              { label: t("settings.interface.language_system"), value: "system" },
+              { label: t("settings.interface.language_zh"), value: "zh-CN" },
+              { label: t("settings.interface.language_en"), value: "en-US" },
+            ]}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t("settings.interface.workspaces_section")}>
+          <SettingRowSelect
+            title={t("settings.interface.open_workspace_behavior")}
+            description={t("settings.interface.open_workspace_behavior_desc")}
             name="switchWorkspaceBehavior"
             value={
               settings.openWorkspaceNewWindow === true
@@ -72,28 +88,28 @@ export function SettingsInterface() {
               else await patchModel(settings, { openWorkspaceNewWindow: null });
             }}
             options={[
-              { label: "Always ask", value: "ask" },
-              { label: "Open in current window", value: "current" },
-              { label: "Open in new window", value: "new" },
+              { label: t("settings.interface.behavior_ask"), value: "ask" },
+              { label: t("settings.interface.behavior_current"), value: "current" },
+              { label: t("settings.interface.behavior_new"), value: "new" },
             ]}
           />
         </SettingsSection>
 
-        <SettingsSection title="Fonts">
+        <SettingsSection title={t("settings.interface.fonts_section")}>
           <SettingRow
-            title="Interface font"
-            description="Font used for Yaak interface controls."
+            title={t("settings.interface.interface_font")}
+            description={t("settings.interface.interface_font_desc")}
             controlClassName="gap-1"
           >
             {fonts.data && (
               <SettingSelectControl
                 name="uiFont"
-                label="Interface font"
+                label={t("settings.interface.interface_font")}
                 selectClassName="w-72!"
                 value={settings.interfaceFont ?? NULL_FONT_VALUE}
                 defaultValue={NULL_FONT_VALUE}
                 options={[
-                  { label: "System default", value: NULL_FONT_VALUE },
+                  { label: t("settings.interface.system_default"), value: NULL_FONT_VALUE },
                   ...fonts.data.uiFonts.map((f) => ({ label: f, value: f })),
                   ...fonts.data.editorFonts.map((f) => ({ label: f, value: f })),
                 ]}
@@ -105,7 +121,7 @@ export function SettingsInterface() {
             )}
             <SettingSelectControl
               name="interfaceFontSize"
-              label="Interface Font Size"
+              label={t("settings.interface.interface_font_size")}
               selectClassName="w-20!"
               value={`${settings.interfaceFontSize}`}
               defaultValue="14"
@@ -115,19 +131,18 @@ export function SettingsInterface() {
           </SettingRow>
 
           <SettingRow
-            title="Editor font"
-            description="Font used in request and response editors."
+            title={t("settings.interface.editor_font")}
+            description={t("settings.interface.editor_font_desc")}
             controlClassName="gap-1"
           >
             {fonts.data && (
               <SettingSelectControl
                 name="editorFont"
-                label="Editor font"
-                selectClassName="w-72!"
+                label={t("settings.interface.editor_font")}
                 value={settings.editorFont ?? NULL_FONT_VALUE}
                 defaultValue={NULL_FONT_VALUE}
                 options={[
-                  { label: "System default", value: NULL_FONT_VALUE },
+                  { label: t("settings.interface.system_default"), value: NULL_FONT_VALUE },
                   ...fonts.data.editorFonts.map((f) => ({ label: f, value: f })),
                 ]}
                 onChange={async (v) => {
@@ -138,8 +153,7 @@ export function SettingsInterface() {
             )}
             <SettingSelectControl
               name="editorFontSize"
-              label="Editor Font Size"
-              selectClassName="w-20!"
+              label={t("settings.interface.editor_font_size")}
               value={`${settings.editorFontSize}`}
               defaultValue="12"
               options={fontSizeOptions}
@@ -174,7 +188,7 @@ export function SettingsInterface() {
           />
         </SettingsSection>
 
-        <SettingsSection title="Window">
+        <SettingsSection title={t("settings.interface.window_section")}>
           <NativeTitlebarSetting settings={settings} />
           {platform.osType() !== "macos" && (
             <ModelSettingRowBoolean
@@ -196,11 +210,12 @@ export function SettingsInterface() {
 
 function NativeTitlebarSetting({ settings }: { settings: Settings }) {
   const [nativeTitlebar, setNativeTitlebar] = useState(settings.useNativeTitlebar);
+  const { t } = useTranslation();
 
   return (
     <SettingRow
-      title="Native title bar"
-      description="Use the operating system's standard title bar and window controls."
+      title={t("settings.interface.native_titlebar")}
+      description={t("settings.interface.native_titlebar_desc")}
       controlClassName="gap-2"
     >
       <Checkbox

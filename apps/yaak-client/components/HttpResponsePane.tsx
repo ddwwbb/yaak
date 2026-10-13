@@ -1,5 +1,6 @@
 import type { HttpResponse, HttpResponseEvent } from "@yaakapp-internal/models";
 import { Banner, HStack, Icon, LoadingIcon, VStack } from "@yaakapp-internal/ui";
+import { useTranslation } from "../lib/i18n";
 import classNames from "classnames";
 import type { ComponentType, CSSProperties } from "react";
 import { lazy, Suspense, useMemo } from "react";
@@ -83,12 +84,13 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
   const cookieCounts = useMemo(() => getCookieCounts(responseEvents.data), [responseEvents.data]);
   const saveResponse = useSaveResponse(activeResponse ?? null);
   const copyResponse = useCopyHttpResponse(activeResponse ?? null);
+  const { t } = useTranslation();
 
   const tabs = useMemo<TabItem[]>(
     () => [
       {
         value: TAB_BODY,
-        label: "Response",
+        label: t("response.tabs.body"),
         options: {
           value: viewMode,
           onChange: setViewMode,
@@ -100,14 +102,14 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
           ],
           itemsAfter: [
             {
-              label: "Save to File",
+              label: t("response.save_body"),
               onSelect: saveResponse.mutate,
               leftSlot: <Icon icon="save" />,
               hidden: activeResponse == null || !!activeResponse.error,
               disabled: activeResponse?.state !== "closed" && (activeResponse?.status ?? 0) >= 100,
             },
             {
-              label: "Copy Body",
+              label: t("response.copy_body"),
               onSelect: copyResponse.mutate,
               leftSlot: <Icon icon="copy" />,
               hidden: activeResponse == null || !!activeResponse.error,
@@ -118,13 +120,13 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
       },
       {
         value: TAB_REQUEST,
-        label: "Request",
+        label: t("response.tabs.request"),
         rightSlot:
           (activeResponse?.requestContentLength ?? 0) > 0 ? <CountBadge count={true} /> : null,
       },
       {
         value: TAB_HEADERS,
-        label: "Headers",
+        label: t("response.tabs.headers"),
         rightSlot: (
           <CountBadge
             count={activeResponse?.requestHeaders.length ?? 0}
@@ -135,7 +137,7 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
       },
       {
         value: TAB_COOKIES,
-        label: "Cookies",
+        label: t("response.tabs.cookies"),
         rightSlot:
           cookieCounts.sent > 0 || cookieCounts.received > 0 ? (
             <CountBadge count={cookieCounts.sent} count2={cookieCounts.received} showZero />
@@ -148,7 +150,7 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
           value: timelineViewMode,
           onChange: (v) => setTimelineViewMode((v as TimelineViewMode) ?? "timeline"),
           items: [
-            { label: "Timeline", value: "timeline" },
+            { label: t("response.tabs.timeline"), value: "timeline" },
             { label: "Timeline (Text)", shortLabel: "Timeline", value: "text" },
           ],
         },

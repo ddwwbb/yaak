@@ -1,5 +1,6 @@
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import { Heading, HStack, Icon, type IconProps, VStack } from "@yaakapp-internal/ui";
+import { useTranslation } from "../../lib/i18n";
 import { useAtomValue } from "jotai";
 import { lazy, Suspense } from "react";
 import { activeWorkspaceAtom } from "../../hooks/useActiveWorkspace";
@@ -52,7 +53,7 @@ export function SettingsTheme() {
   const settings = useAtomValue(settingsAtom);
   const appearance = useResolvedAppearance();
   const activeTheme = useResolvedTheme();
-
+  const { t } = useTranslation();
   if (settings == null || workspace == null || activeTheme.data == null) {
     return null;
   }
@@ -74,7 +75,7 @@ export function SettingsTheme() {
   return (
     <VStack space={1.5} className="mb-4">
       <div className="mb-3">
-        <Heading>Theme</Heading>
+        <Heading>{t("settings.theme.title")}</Heading>
         <p className="text-text-subtle">
           Make Yaak your own by selecting a theme, or{" "}
           <Link href="https://yaak.app/docs/plugin-development/plugins-quick-start">
@@ -83,22 +84,22 @@ export function SettingsTheme() {
         </p>
       </div>
       <SettingsList className="space-y-8">
-        <SettingsSection title="Theme">
+        <SettingsSection title={t("settings.theme.title")}>
           <ModelSettingRowSelect
             model={settings}
             modelKey="appearance"
-            title="Appearance"
-            description="Choose whether Yaak follows your system appearance or uses a fixed mode."
+            title={t("settings.theme.appearance")}
+            description={t("settings.theme.appearance_desc")}
             options={[
-              { label: "Automatic", value: "system" },
-              { label: "Light", value: "light" },
-              { label: "Dark", value: "dark" },
+              { label: t("settings.theme.system"), value: "system" },
+              { label: t("settings.theme.light"), value: "light" },
+              { label: t("settings.theme.dark"), value: "dark" },
             ]}
           />
           {(settings.appearance === "system" || settings.appearance === "light") && (
             <SettingRowSelect
               name="lightTheme"
-              title="Light theme"
+              title={t("settings.theme.light_theme")}
               description="Theme used when Yaak is in light mode."
               value={activeTheme.data.light.id}
               options={lightThemes}
@@ -108,7 +109,7 @@ export function SettingsTheme() {
           {(settings.appearance === "system" || settings.appearance === "dark") && (
             <SettingRowSelect
               name="darkTheme"
-              title="Dark theme"
+              title={t("settings.theme.dark_theme")}
               description="Theme used when Yaak is in dark mode."
               value={activeTheme.data.dark.id}
               options={darkThemes}

@@ -1,5 +1,6 @@
 import type { Extension } from "@codemirror/state";
 import { Compartment } from "@codemirror/state";
+import { useTranslation } from "../lib/i18n";
 import { debounce } from "@yaakapp-internal/lib";
 import { gitMutations } from "@yaakapp-internal/git";
 import type { GitStatus } from "@yaakapp-internal/git";
@@ -53,10 +54,7 @@ import { deepEqualAtom } from "../lib/atoms";
 import { showConfirm } from "../lib/confirm";
 import { deleteModelWithConfirm } from "../lib/deleteModelWithConfirm";
 import { showDialog } from "../lib/dialog";
-import {
-  gitWorktreeStatusByModelIdAtom,
-  gitWorktreeStatusFamily,
-} from "../lib/gitWorktreeStatus";
+import { gitWorktreeStatusByModelIdAtom, gitWorktreeStatusFamily } from "../lib/gitWorktreeStatus";
 import { jotaiStore } from "../lib/jotai";
 import { resolvedModelName } from "../lib/resolvedModelName";
 import { isSidebarFocused } from "../lib/scopes";
@@ -113,7 +111,7 @@ function Sidebar({ className }: { className?: string }) {
   const treeId = `tree.${activeWorkspaceId ?? "unknown"}`;
   const filterText = useAtomValue(sidebarFilterAtom);
   const [tree, allFields, emptyFilterSuggestions] = useAtomValue(sidebarTreeAtom) ?? [];
-
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLElement>(null);
   const treeRef = useRef<TreeHandle>(null);
   const filterRef = useRef<InputHandle>(null);
@@ -499,7 +497,7 @@ function Sidebar({ className }: { className?: string }) {
         ...gitItems,
         { type: "separator", hidden: gitItems.length === 0 },
         {
-          label: "Rename",
+          label: t("common.rename"),
           leftSlot: <Icon icon="pencil" />,
           hidden: items.length > 1,
           hotKeyAction: "sidebar.selected.rename",
@@ -507,7 +505,7 @@ function Sidebar({ className }: { className?: string }) {
           onSelect: () => handleRenameSelected(items),
         },
         {
-          label: "Duplicate",
+          label: t("common.duplicate"),
           hotKeyAction: "model.duplicate",
           hotKeyLabelOnly: true, // Would trigger for every request (bad)
           leftSlot: <Icon icon="copy" />,
@@ -526,7 +524,7 @@ function Sidebar({ className }: { className?: string }) {
         },
         {
           color: "danger",
-          label: "Delete",
+          label: t("common.delete"),
           hotKeyAction: "sidebar.selected.delete",
           hotKeyLabelOnly: true,
           leftSlot: <Icon icon="trash" />,
@@ -585,7 +583,7 @@ function Sidebar({ className }: { className?: string }) {
               size="sm"
               label="filter"
               language={null} // Explicitly disable
-              placeholder="Search"
+              placeholder={t("sidebar.search_placeholder")}
               onChange={handleFilterChange}
               defaultValue={filterText.text}
               forceUpdateKey={filterText.key}
@@ -598,7 +596,7 @@ function Sidebar({ className }: { className?: string }) {
                   <IconButton
                     className="bg-transparent! h-auto! min-h-full opacity-50 hover:opacity-100 -mr-1"
                     icon="x"
-                    title="Clear filter"
+                    title={t("common.clear")}
                     onClick={clearFilterText}
                   />
                 )
@@ -1044,7 +1042,10 @@ const sidebarGitStatusByModelIdAtom = atom<Record<string, GitStatus>>((get) => {
 
 const sidebarGitStatusFamily = atomFamily(
   (modelId: string) =>
-    selectAtom(sidebarGitStatusByModelIdAtom, (statusByModelId) => statusByModelId[modelId] ?? null),
+    selectAtom(
+      sidebarGitStatusByModelIdAtom,
+      (statusByModelId) => statusByModelId[modelId] ?? null,
+    ),
   Object.is,
 );
 

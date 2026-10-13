@@ -4,6 +4,7 @@ import { InlineCode } from "@yaakapp-internal/ui";
 import { Prose } from "../components/Prose";
 import { showConfirmDelete } from "./confirm";
 import { pluralizeCount } from "./pluralize";
+import { t, translatedModelType } from "./i18n";
 import { resolvedModelName } from "./resolvedModelName";
 
 export async function deleteModelWithConfirm(
@@ -19,14 +20,17 @@ export async function deleteModelWithConfirm(
   if (firstModel == null) return false;
 
   const descriptor =
-    models.length === 1 ? modelTypeLabel(firstModel) : pluralizeCount("Item", models.length);
+    models.length === 1
+      ? translatedModelType(firstModel.model)
+      : pluralizeCount("Item", models.length);
   const confirmed = await showConfirmDelete({
     id: `delete-model-${models.map((m) => m.id).join(",")}`,
-    title: `Delete ${descriptor}`,
+    title: t("dialogs.confirm_delete.title", { item: descriptor }),
+    confirmText: t("common.delete"),
     requireTyping: options.confirmName,
     description: (
       <>
-        Permanently delete{" "}
+        {t("dialogs.confirm_delete.permanently_delete")}{" "}
         {models.length === 1 ? (
           <>
             <InlineCode>{resolvedModelName(firstModel)}</InlineCode>?

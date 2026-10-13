@@ -1,6 +1,7 @@
 import type { HttpRequest } from "@yaakapp-internal/models";
 import { getModel, patchModel, patchModelDebounced } from "@yaakapp-internal/models";
 import type { GenericCompletionOption } from "@yaakapp-internal/plugins";
+import { useTranslation } from "../lib/i18n";
 import classNames from "classnames";
 import { atom, useAtomValue } from "jotai";
 import type { CSSProperties } from "react";
@@ -92,7 +93,7 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
   const headersTab = useHeadersTab(TAB_HEADERS, activeRequest);
   const inheritedHeaders = useInheritedHeaders(activeRequest);
   const numSettingsOverrides = countOverriddenSettings(activeRequest);
-
+  const { t } = useTranslation();
   // Listen for event to focus the params tab (e.g., when clicking a :param in the URL)
   useRequestEditorEvent(
     "request_pane.focus_tab",
@@ -176,8 +177,8 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
           value: activeRequest.bodyType,
           items: [
             { type: "separator", label: "Form Data" },
-            { label: "Url Encoded", value: BODY_TYPE_FORM_URLENCODED },
-            { label: "Multi-Part", value: BODY_TYPE_FORM_MULTIPART },
+            { label: t("request.body_types.form_urlencoded"), value: BODY_TYPE_FORM_URLENCODED },
+            { label: t("request.body_types.multipart"), value: BODY_TYPE_FORM_MULTIPART },
             { type: "separator", label: "Text Content" },
             { label: "GraphQL", value: BODY_TYPE_GRAPHQL },
             { label: "JSON", value: BODY_TYPE_JSON },
@@ -188,8 +189,12 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
               shortLabel: nameOfContentTypeOr(contentType, "Other"),
             },
             { type: "separator", label: "Other" },
-            { label: "Binary File", value: BODY_TYPE_BINARY },
-            { label: "No Body", shortLabel: "Body", value: BODY_TYPE_NONE },
+            { label: t("request.body_types.binary"), value: BODY_TYPE_BINARY },
+            {
+              label: t("request.body_types.none"),
+              shortLabel: t("request.tabs.body"),
+              value: BODY_TYPE_NONE,
+            },
           ],
           onChange: async (bodyType) => {
             if (bodyType === activeRequest.bodyType) return;
@@ -250,18 +255,18 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
       {
         value: TAB_PARAMS,
         rightSlot: <CountBadge count={urlParameterPairs.length} />,
-        label: "Params",
+        label: t("request.tabs.params"),
       },
       ...headersTab,
       ...authTab,
       {
         value: TAB_SETTINGS,
-        label: "Settings",
+        label: t("request.tabs.settings"),
         rightSlot: <CountBadge count={numSettingsOverrides} />,
       },
       {
         value: TAB_DESCRIPTION,
-        label: "Info",
+        label: t("request.tabs.description"),
         rightSlot: hasDescription && <CountBadge count={true} />,
       },
     ],

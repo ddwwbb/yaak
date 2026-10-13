@@ -1,3 +1,4 @@
+import { useTranslation } from "../lib/i18n";
 import { HStack } from "@yaakapp-internal/ui";
 import { useMemo } from "react";
 import { useFloatingSidebarHidden } from "../hooks/useFloatingSidebarHidden";
@@ -12,7 +13,7 @@ interface Props {
 export function SidebarActions({ floating = false }: Props) {
   const [sidebarHidden, setSidebarHidden] = useSidebarHidden();
   const [floatingHidden, setFloatingHidden] = useFloatingSidebarHidden();
-
+  const { t } = useTranslation();
   const hidden = floating ? floatingHidden : sidebarHidden;
   const setHidden = useMemo(
     () => (floating ? setFloatingHidden : setSidebarHidden),
@@ -27,12 +28,17 @@ export function SidebarActions({ floating = false }: Props) {
         }}
         className="pointer-events-auto"
         size="sm"
-        title="Toggle sidebar"
+        title={t("sidebar.search_placeholder")}
         icon={hidden ? "left_panel_hidden" : "left_panel_visible"}
         iconColor="secondary"
       />
       <CreateDropdown hotKeyAction="model.create">
-        <IconButton size="sm" icon="plus_circle" iconColor="secondary" title="Add Resource" />
+        <IconButton
+          size="sm"
+          icon="plus_circle"
+          iconColor="secondary"
+          title={t("sidebar.new_request")}
+        />
       </CreateDropdown>
     </HStack>
   );

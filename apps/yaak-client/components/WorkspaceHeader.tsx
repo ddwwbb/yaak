@@ -1,5 +1,6 @@
 import { HStack, Icon } from "@yaakapp-internal/ui";
 import classNames from "classnames";
+import { useTranslation } from "../lib/i18n";
 import { useAtom, useAtomValue } from "jotai";
 import { memo } from "react";
 import { activeWorkspaceAtom, activeWorkspaceMetaAtom } from "../hooks/useActiveWorkspace";
@@ -26,6 +27,7 @@ export const WorkspaceHeader = memo(function WorkspaceHeader({
   className,
   floatingSidebar,
 }: Props) {
+  const { t } = useTranslation();
   const togglePalette = useToggleCommandPalette();
   const [workspaceLayout, setWorkspaceLayout] = useAtom(workspaceLayoutAtom);
   const workspace = useAtomValue(activeWorkspaceAtom);
@@ -59,7 +61,7 @@ export const WorkspaceHeader = memo(function WorkspaceHeader({
         <ImportCurl />
         {showEncryptionSetup ? (
           <PillButton color="danger" onClick={setupOrConfigureEncryption}>
-            Enter Encryption Key
+            {t("header.enter_encryption_key")}
           </PillButton>
         ) : (
           <LicenseBadge />
@@ -72,7 +74,11 @@ export const WorkspaceHeader = memo(function WorkspaceHeader({
                 ? "columns_2"
                 : "rows_2"
           }
-          title={`Change to ${workspaceLayout === "horizontal" ? "vertical" : "horizontal"} layout`}
+          title={
+            workspaceLayout === "horizontal"
+              ? t("header.switch_to_vertical")
+              : t("header.switch_to_horizontal")
+          }
           size="sm"
           iconColor="secondary"
           onClick={() =>
@@ -81,7 +87,7 @@ export const WorkspaceHeader = memo(function WorkspaceHeader({
         />
         <IconButton
           icon="search"
-          title="Search or execute a command"
+          title={t("header.search_or_command")}
           size="sm"
           hotkeyAction="command_palette.toggle"
           iconColor="secondary"
