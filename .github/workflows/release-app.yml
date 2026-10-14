@@ -35,6 +35,11 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -104,7 +109,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install trusted-signing-cli (Windows only)
-        if: matrix.os == 'windows' && secrets.AZURE_CLIENT_ID != ''
+        if: matrix.os == 'windows' && env.AZURE_CLIENT_ID != ''
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -136,7 +141,7 @@ jobs:
           YAAK_VERSION: ${{ needs.resolve-version.outputs.version }}
 
       - name: Sign vendored binaries (macOS only)
-        if: matrix.os == 'macos' && secrets.APPLE_CERTIFICATE != ''
+        if: matrix.os == 'macos' && env.APPLE_CERTIFICATE != ''
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -159,10 +164,10 @@ jobs:
         shell: bash
         run: |
           EXTRA_ARGS=""
-          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ] && [ "${{ matrix.os }}" = "windows" ]; then
+          if [ -z "$AZURE_CLIENT_ID" ] && [ "${{ matrix.os }}" = "windows" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --config '{\"bundle\":{\"windows\":{\"signCommand\":null}}}'"
           fi
-          if [ -z "${{ secrets.TAURI_PRIVATE_KEY }}" ]; then
+          if [ -z "$TAURI_PRIVATE_KEY" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --config '{\"bundle\":{\"createUpdaterArtifacts\":false}}'"
           fi
           echo "EXTRA_TAURI_ARGS=$EXTRA_ARGS" >> "$GITHUB_ENV"
@@ -224,7 +229,7 @@ jobs:
           RELEASE_ARGS: ${{ matrix.args }}
 
       - name: Build and upload machine-wide installer (Windows only)
-        if: matrix.os == 'windows' && secrets.AZURE_CLIENT_ID != ''
+        if: matrix.os == 'windows' && env.AZURE_CLIENT_ID != ''
         shell: pwsh
         env:
           YAAK_TARGET_ARCH: ${{ matrix.yaak_arch }}
