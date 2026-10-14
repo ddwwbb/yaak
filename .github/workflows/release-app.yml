@@ -202,7 +202,8 @@ jobs:
           AZURE_TENANT_ID: ${{ matrix.os == 'windows' && secrets.AZURE_TENANT_ID }}
         with:
           retryAttempts: 3
-          tauriScript: "node ../../node_modules/@tauri-apps/cli/tauri.js"
+          # Tauri treats empty Apple credential variables as configured credentials.
+          tauriScript: "${{ matrix.os == 'macos' && env.APPLE_CERTIFICATE == '' && 'env -u APPLE_CERTIFICATE -u APPLE_CERTIFICATE_PASSWORD -u APPLE_ID -u APPLE_PASSWORD -u APPLE_TEAM_ID node ../../node_modules/@tauri-apps/cli/tauri.js' || 'node ../../node_modules/@tauri-apps/cli/tauri.js' }}"
           tagName: "v__VERSION__"
           releaseName: "Yaak v__VERSION__ (中文版)"
           releaseBody: |

@@ -63,6 +63,18 @@ lists which commands the browser host implements and which it declines.
 Desktop builds are unaffected: without the flag the platform package installs
 the Tauri host exactly as before.
 
+## macOS Release Signing
+
+The release workflow (`.github/workflows/release-app.yml`) uses ad-hoc signing
+(`signingIdentity: "-"`) when `APPLE_CERTIFICATE` is not configured. In that case,
+the CLI launcher unsets the Apple certificate and notarization credentials:
+Tauri treats empty environment variables as present and otherwise attempts to
+import an empty certificate or use empty notarization credentials.
+
+Builds with an Apple certificate keep their signing environment unchanged.
+Ad-hoc builds are not notarized; users may need to allow them in macOS
+Privacy & Security settings.
+
 ## SQLite Migrations
 
 New migrations can be created from the `src-tauri/` directory:
