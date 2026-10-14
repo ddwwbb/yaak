@@ -85,6 +85,9 @@ jobs:
         with:
           targets: ${{ matrix.targets }}
 
+      - name: Install wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: release
@@ -167,6 +170,9 @@ jobs:
           if [ -z "$AZURE_CLIENT_ID" ] && [ "${{ matrix.os }}" = "windows" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --config '{\"bundle\":{\"windows\":{\"signCommand\":null}}}'"
           fi
+          if [ -z "$APPLE_CERTIFICATE" ] && [ "${{ matrix.os }}" = "macos" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --config '{\"bundle\":{\"macOS\":{\"signingIdentity\":\"-\"}}}'"
+          fi
           if [ -z "$TAURI_PRIVATE_KEY" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --config '{\"bundle\":{\"createUpdaterArtifacts\":false}}'"
           fi
@@ -177,7 +183,7 @@ jobs:
         env:
           YAAK_TARGET_ARCH: ${{ matrix.yaak_arch }}
 
-          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE }}
+          ENABLE_CODE_SIGNING: ${{ env.APPLE_CERTIFICATE != '' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -187,7 +193,7 @@ jobs:
           APPLE_CERTIFICATE_PASSWORD: ${{ matrix.os == 'macos' && secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ matrix.os == 'macos' && secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ matrix.os == 'macos' && secrets.APPLE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ matrix.os == 'macos' && secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_CERTIFICATE != '' && secrets.APPLE_SIGNING_IDENTITY || '-' }}
           APPLE_TEAM_ID: ${{ matrix.os == 'macos' && secrets.APPLE_TEAM_ID }}
 
           # Windows signing stuff
