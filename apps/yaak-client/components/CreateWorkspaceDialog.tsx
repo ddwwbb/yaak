@@ -1,6 +1,7 @@
 import { gitMutations } from "@yaakapp-internal/git";
 import type { WorkspaceMeta } from "@yaakapp-internal/models";
 import { createGlobalModel, updateModel } from "@yaakapp-internal/models";
+import { useTranslation } from "../lib/i18n";
 import { VStack } from "@yaakapp-internal/ui";
 import { useId, useState } from "react";
 import { router } from "../lib/router";
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function CreateWorkspaceDialog({ hide }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState<string>("");
   const [syncConfig, setSyncConfig] = useState<{
     filePath: string | null;
@@ -73,7 +75,7 @@ export function CreateWorkspaceDialog({ hide }: Props) {
         }
       }}
     >
-      <PlainInput required label="Name" defaultValue={name} onChange={setName} />
+      <PlainInput required label={t("common.name")} defaultValue={name} onChange={setName} />
 
       <SyncToFilesystemSetting
         onChange={setSyncConfig}
@@ -82,15 +84,17 @@ export function CreateWorkspaceDialog({ hide }: Props) {
       />
       <div>
         <Label htmlFor={null} help={<EncryptionHelp />}>
-          Workspace encryption
+          {t("workspaces.encryption_label")}
         </Label>
         <Checkbox
           checked={setupEncryption}
           onChange={setSetupEncryption}
-          title="Enable Encryption"
+          title={t("workspaces.enable_encryption")}
         />
       </div>
-      <DialogFooter actions={[{ label: "Create Workspace", color: "primary", form: formId }]} />
+      <DialogFooter
+        actions={[{ label: t("dialogs.new_workspace.create"), color: "primary", form: formId }]}
+      />
     </VStack>
   );
 }

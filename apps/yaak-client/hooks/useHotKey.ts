@@ -5,6 +5,7 @@ import { atom, useAtomValue } from "jotai";
 import { useEffect } from "react";
 import { capitalize } from "../lib/capitalize";
 import { jotaiStore } from "../lib/jotai";
+import { t, useTranslation } from "../lib/i18n";
 
 const HOLD_KEYS = ["Shift", "Control", "Command", "Alt", "Meta"];
 const SINGLE_WHITELIST = ["Delete", "Enter", "Backspace"];
@@ -321,12 +322,13 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 export function useHotkeyLabel(action: HotkeyAction): string {
-  return hotkeyLabels[action];
+  const { t } = useTranslation();
+  return t(`hotkeys.actions.${action}`, undefined, hotkeyLabels[action]);
 }
 
 export function getHotkeyScope(action: HotkeyAction): string {
-  const scope = action.split(".")[0];
-  return scope || "";
+  const scope = action.split(".")[0] || "";
+  return t(`hotkeys.scopes.${scope}`, undefined, scope);
 }
 
 export function formatHotkeyString(trigger: string): string[] {

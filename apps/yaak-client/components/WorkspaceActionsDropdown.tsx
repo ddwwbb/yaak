@@ -1,5 +1,6 @@
 import { getModel, settingsAtom, workspacesAtom } from "@yaakapp-internal/models";
 import classNames from "classnames";
+import { useTranslation } from "../lib/i18n";
 import { useAtomValue } from "jotai";
 import { memo, useCallback, useMemo } from "react";
 import { openWorkspaceFromSyncDir } from "../commands/openWorkspaceFromSyncDir";
@@ -33,6 +34,7 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
   className,
   ...buttonProps
 }: Props) {
+  const { t } = useTranslation();
   const workspaces = useAtomValue(workspacesAtom);
   const workspace = useAtomValue(activeWorkspaceAtom);
   const createWorkspace = useCreateWorkspace();
@@ -63,20 +65,20 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
 
     const itemsBefore: DropdownItem[] = [
       {
-        label: "New Workspace",
+        label: t("workspaces.new_workspace"),
         leftSlot: <Icon icon="plus" />,
         submenu: [
           {
-            label: "Create Empty",
+            label: t("workspaces.create_empty"),
             leftSlot: <Icon icon="plus_circle" />,
             onSelect: createWorkspace,
           },
           {
-            label: "Open Folder",
+            label: t("workspaces.open_folder"),
             leftSlot: <Icon icon="folder_open" />,
             onSelect: async () => {
               const dir = await platform.dialog.open({
-                title: "Select Workspace Directory",
+                title: t("workspaces.select_directory"),
                 directory: true,
                 multiple: false,
               });
@@ -86,12 +88,12 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
             },
           },
           {
-            label: "Clone Git Repository",
+            label: t("workspaces.clone_git"),
             leftSlot: <Icon icon="hard_drive_download" />,
             onSelect: openCloneGitRepositoryDialog,
           },
           {
-            label: "Import Data",
+            label: t("menu.import_data"),
             leftSlot: <Icon icon="folder_input" />,
             onSelect: () => importData.mutate(),
           },
@@ -108,7 +110,7 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
       })),
       ...(workspaceActions.length > 0 ? [{ type: "separator" as const }] : []),
       {
-        label: "Workspace Settings",
+        label: t("workspaces.workspace_settings"),
         leftSlot: <Icon icon="settings" />,
         hotKeyAction: "workspace_settings.show",
         onSelect: openWorkspaceSettings,
@@ -123,7 +125,7 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
         },
       },
       {
-        label: "Clear Send History",
+        label: t("workspaces.clear_send_history"),
         color: "warning",
         leftSlot: <Icon icon="history" />,
         onSelect: deleteSendHistory,
@@ -164,7 +166,7 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
     showDialog({
       id: "switch-workspace",
       size: "sm",
-      title: "Switch Workspace",
+      title: t("workspaces.switch_workspace"),
       render: ({ hide }) => <SwitchWorkspaceDialog workspace={workspace} hide={hide} />,
     });
   }, []);
@@ -186,7 +188,7 @@ export const WorkspaceActionsDropdown = memo(function WorkspaceActionsDropdown({
         )}
         {...buttonProps}
       >
-        {workspace?.name ?? "Workspace"}
+        {workspace?.name ?? t("models.workspace")}
       </Button>
     </RadioDropdown>
   );

@@ -3,6 +3,7 @@ import { Banner, HStack, Icon, VStack } from "@yaakapp-internal/ui";
 import { differenceInDays } from "date-fns";
 import { formatDate } from "date-fns/format";
 import { useState } from "react";
+import { useTranslation } from "../../lib/i18n";
 import { useToggle } from "../../hooks/useToggle";
 import { pluralizeCount } from "../../lib/pluralize";
 import { pricingUrl } from "../../lib/pricingUrl";
@@ -23,6 +24,7 @@ export function SettingsLicense() {
 
 function SettingsLicenseCmp() {
   const { check, activate, deactivate } = useLicense();
+  const { t } = useTranslation();
   const [key, setKey] = useState<string>("");
   const [activateFormVisible, toggleActivateFormVisible] = useToggle(false);
 
@@ -35,7 +37,7 @@ function SettingsLicenseCmp() {
 
     switch (check.data.status) {
       case "active":
-        return <Banner color="success">Your license is active 🥳</Banner>;
+        return <Banner color="success">{t("settings.license.active_banner")}</Banner>;
 
       case "trialing":
         return (
@@ -50,7 +52,7 @@ function SettingsLicenseCmp() {
               <Separator className="my-2" />
               <div className="flex flex-wrap items-center gap-x-2 text-sm text-notice">
                 <Link noUnderline href={pricingUrl(`app.license.learn.${check.data.status}`)}>
-                  Learn More
+                  {t("common.learn_more")}
                 </Link>
               </div>
             </p>
@@ -70,7 +72,7 @@ function SettingsLicenseCmp() {
               <Separator className="my-2" />
               <div className="flex flex-wrap items-center gap-x-2 text-sm text-notice">
                 <Link noUnderline href={pricingUrl(`app.license.learn.${check.data.status}`)}>
-                  Learn More
+                  {t("common.learn_more")}
                 </Link>
               </div>
             </p>
@@ -80,7 +82,7 @@ function SettingsLicenseCmp() {
       case "inactive":
         return (
           <Banner color="danger">
-            Your license is invalid. Please <Link href="https://yaak.app/dashboard">Sign In</Link>{" "}
+            {t("settings.license.inactive_banner")}
             for more details
           </Banner>
         );
@@ -130,31 +132,35 @@ function SettingsLicenseCmp() {
       {check.data?.status === "active" ? (
         <HStack space={2}>
           <Button variant="border" color="secondary" size="sm" onClick={() => deactivate.mutate()}>
-            Deactivate License
+            {t("settings.license.deactivate")}
           </Button>
           <Button
             color="secondary"
             size="sm"
-            onClick={() => platform.openUrl("https://yaak.app/dashboard?intent=app.license.support")}
+            onClick={() =>
+              platform.openUrl("https://yaak.app/dashboard?intent=app.license.support")
+            }
             rightSlot={<Icon icon="external_link" />}
           >
-            Direct Support
+            {t("settings.license.direct_support")}
           </Button>
         </HStack>
       ) : (
         <HStack space={2}>
           <Button variant="border" color="secondary" size="sm" onClick={toggleActivateFormVisible}>
-            Activate License
+            {t("settings.license.activate_license")}
           </Button>
           <Button
             size="sm"
             color="primary"
             rightSlot={<Icon icon="external_link" />}
             onClick={() =>
-              platform.openUrl(pricingUrl(`app.license.purchase.${check.data?.status ?? "unknown"}`))
+              platform.openUrl(
+                pricingUrl(`app.license.purchase.${check.data?.status ?? "unknown"}`),
+              )
             }
           >
-            Purchase License
+            {t("settings.license.purchase_license")}
           </Button>
         </HStack>
       )}
@@ -172,13 +178,13 @@ function SettingsLicenseCmp() {
         >
           <PlainInput
             autoFocus
-            label="License Key"
+            label={t("settings.license.license_key")}
             name="key"
             onChange={setKey}
             placeholder="YK1-XXXXX-XXXXX-XXXXX-XXXXX"
           />
           <Button type="submit" color="primary" size="sm" isLoading={activate.isPending}>
-            Submit
+            {t("common.submit")}
           </Button>
         </VStack>
       )}

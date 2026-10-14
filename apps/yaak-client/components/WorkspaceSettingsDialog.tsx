@@ -1,5 +1,6 @@
 import { patchModel, workspaceMetasAtom, workspacesAtom } from "@yaakapp-internal/models";
 import { Banner, HStack, InlineCode } from "@yaakapp-internal/ui";
+import { useTranslation } from "../lib/i18n";
 import { useAtomValue } from "jotai";
 import { useAuthTab } from "../hooks/useAuthTab";
 import { useHeadersTab } from "../hooks/useHeadersTab";
@@ -43,6 +44,7 @@ export type WorkspaceSettingsTab =
 const DEFAULT_TAB: WorkspaceSettingsTab = TAB_GENERAL;
 
 export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
+  const { t } = useTranslation();
   const workspace = useAtomValue(workspacesAtom).find((w) => w.id === workspaceId);
   const workspaceMeta = useAtomValue(workspaceMetasAtom).find((m) => m.workspaceId === workspaceId);
   const authTab = useAuthTab(TAB_AUTH, workspace ?? null);
@@ -67,21 +69,21 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
   return (
     <Tabs
       defaultValue={tab ?? DEFAULT_TAB}
-      label="Folder Settings"
+      label={t("workspaces.title")}
       className="pt-4 pb-2 px-3"
       tabListClassName="pl-4"
       addBorders
       tabs={[
-        { value: TAB_GENERAL, label: "Workspace" },
+        { value: TAB_GENERAL, label: t("workspaces.workspace_tab") },
         {
           value: TAB_SETTINGS,
-          label: "Settings",
+          label: t("workspaces.settings_tab"),
         },
         ...headersTab,
         ...authTab,
         {
           value: TAB_DNS,
-          label: "DNS",
+          label: t("workspaces.dns_tab"),
           rightSlot:
             workspace.settingDnsOverrides.length > 0 ? (
               <CountBadge count={workspace.settingDnsOverrides.length} />
@@ -124,8 +126,8 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           <PlainInput
             required
             hideLabel
-            placeholder="Workspace Name"
-            label="Name"
+            placeholder={t("workspaces.name_label")}
+            label={t("common.name")}
             defaultValue={workspace.name}
             className="text-base! font-sans"
             onChange={(name) => patchModel(workspace, { name })}
@@ -133,7 +135,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
 
           <MarkdownEditor
             name="workspace-description"
-            placeholder="Workspace description"
+            placeholder={t("workspaces.description_placeholder")}
             className="border border-border px-2"
             defaultValue={workspace.description}
             stateKey={`description.${workspace.id}`}
@@ -156,7 +158,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
               variant="border"
               size="xs"
             >
-              Delete Workspace
+              {t("workspaces.delete_workspace")}
             </Button>
             <InlineCode className="flex gap-1 items-center text-primary pl-2.5">
               {workspaceId}
@@ -164,7 +166,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
                 className="opacity-70 text-primary!"
                 size="2xs"
                 iconSize="sm"
-                title="Copy workspace ID"
+                title={t("workspaces.copy_workspace_id")}
                 text={workspaceId}
               />
             </InlineCode>

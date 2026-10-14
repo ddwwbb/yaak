@@ -1,6 +1,7 @@
 import type { Cookie } from "@yaakapp-internal/models";
 import { cookieJarsAtom, patchModel } from "@yaakapp-internal/models";
 import { formatDate } from "date-fns/format";
+import { useTranslation } from "../lib/i18n";
 import { useAtomValue } from "jotai";
 import {
   type ComponentProps,
@@ -42,6 +43,7 @@ interface Props {
 
 export const CookieDialog = ({ cookieJarId }: Props) => {
   const cookieJars = useAtomValue(cookieJarsAtom);
+  const { t } = useTranslation();
   const cookieJar = cookieJars?.find((c) => c.id === cookieJarId);
   const [filter, setFilter] = useState("");
   const [filterUpdateKey, setFilterUpdateKey] = useState(0);
@@ -138,7 +140,7 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
   };
 
   if (cookieJar == null) {
-    return <div>No cookie jar selected</div>;
+    return <div>{t("cookies.no_jar_selected")}</div>;
   }
 
   return (
@@ -146,9 +148,9 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <PlainInput
           name="cookie-filter"
-          label="Filter cookies"
+          label={t("cookies.filter_placeholder")}
           hideLabel
-          placeholder="Filter cookies"
+          placeholder={t("cookies.filter_placeholder")}
           defaultValue={filter}
           forceUpdateKey={filterUpdateKey}
           onChange={setFilter}
@@ -157,7 +159,7 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
               <IconButton
                 className="bg-transparent! h-auto! min-h-full opacity-50 hover:opacity-100 -mr-1"
                 icon="x"
-                title="Clear filter"
+                title={t("cookies.clear_filter")}
                 onClick={() => {
                   setFilter("");
                   setFilterUpdateKey((key) => key + 1);
@@ -166,14 +168,17 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
             )
           }
         />
-        <IconButton icon="plus" size="sm" title="Add cookie" onClick={handleAddCookie} />
+        <IconButton
+          icon="plus"
+          size="sm"
+          title={t("cookies.add_cookie")}
+          onClick={handleAddCookie}
+        />
       </div>
       {cookieJar.cookies.length === 0 && detailCookie == null ? (
-        <EmptyStateText>
-          Cookies will appear when a response includes a Set-Cookie header.
-        </EmptyStateText>
+        <EmptyStateText>{t("cookies.empty_desc")}</EmptyStateText>
       ) : filteredCookies.length === 0 && detailCookie == null ? (
-        <EmptyStateText>No cookies match the current filter.</EmptyStateText>
+        <EmptyStateText>{t("cookies.empty_filtered")}</EmptyStateText>
       ) : (
         <SplitLayout
           layout="vertical"
@@ -184,27 +189,27 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
           firstSlot={({ style }) =>
             filteredCookies.length === 0 ? (
               <div style={style}>
-                <EmptyStateText>No cookies match the current filter.</EmptyStateText>
+                <EmptyStateText>{t("cookies.empty_filtered")}</EmptyStateText>
               </div>
             ) : (
               <Table scrollable style={style} className="pr-0.5">
                 <TableHead>
                   <TableRow>
-                    <TableHeaderCell>Name</TableHeaderCell>
-                    <TableHeaderCell>Value</TableHeaderCell>
-                    <TableHeaderCell>Domain</TableHeaderCell>
-                    <TableHeaderCell>Path</TableHeaderCell>
-                    <TableHeaderCell>Expires</TableHeaderCell>
-                    <TableHeaderCell>Size</TableHeaderCell>
-                    <TableHeaderCell>HTTP Only</TableHeaderCell>
-                    <TableHeaderCell>Secure</TableHeaderCell>
-                    <TableHeaderCell>Same Site</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.name")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.value")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.domain")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.path")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.expires")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.size")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.http_only")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.secure")}</TableHeaderCell>
+                    <TableHeaderCell>{t("cookies.same_site")}</TableHeaderCell>
                     <TableHeaderCell>
                       <IconButton
                         icon="list_x"
                         size="sm"
                         className="text-text-subtle"
-                        title="Clear all cookies"
+                        title={t("cookies.clear_all")}
                         onClick={() => {
                           setSelectedCookieKey(null);
                           setEditingCookieKey(null);
@@ -302,26 +307,30 @@ export const CookieDialog = ({ cookieJarId }: Props) => {
                     style={style}
                   >
                     <EventDetailHeader
-                      title={isCreatingCookie ? "New Cookie" : detailCookie.name || "Cookie"}
+                      title={
+                        isCreatingCookie ? t("cookies.new_cookie") : detailCookie.name || "Cookie"
+                      }
                       copyText={isEditingCookie ? undefined : detailCookie.value}
                       actions={
                         isEditingCookie
                           ? [
                               {
                                 key: "save",
-                                label: isCreatingCookie ? "Create" : "Save",
+                                label: isCreatingCookie
+                                  ? t("cookies.create_cookie")
+                                  : t("cookies.save_cookie"),
                                 onClick: () => editorFormRef.current?.requestSubmit(),
                               },
                               {
                                 key: "cancel",
-                                label: "Cancel",
+                                label: t("cookies.cancel_edit"),
                                 onClick: handleCancelEdit,
                               },
                             ]
                           : [
                               {
                                 key: "edit",
-                                label: "Edit",
+                                label: t("cookies.edit_cookie"),
                                 onClick: handleEditCookie,
                               },
                             ]
@@ -397,21 +406,26 @@ CookieDialog.show = (cookieJarId: string | null) => {
 };
 
 function CookieDetails({ cookie }: { cookie: Cookie }) {
+  const { t } = useTranslation();
   return (
     <div className="overflow-y-auto">
       <KeyValueRows selectable>
-        <CookieKeyValueRow label="Name">{cookie.name}</CookieKeyValueRow>
-        <CookieKeyValueRow label="Value" enableCopy copyText={cookie.value}>
+        <CookieKeyValueRow label={t("cookies.name")}>{cookie.name}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.value")} enableCopy copyText={cookie.value}>
           <pre className="whitespace-pre-wrap break-all">{cookie.value}</pre>
         </CookieKeyValueRow>
-        <CookieKeyValueRow label="Domain">{cookieDomain(cookie)}</CookieKeyValueRow>
-        <CookieKeyValueRow label="Path">{cookie.path}</CookieKeyValueRow>
-        <CookieKeyValueRow label="Expires">{cookieExpires(cookie)}</CookieKeyValueRow>
-        <CookieKeyValueRow label="Size">{cookieSize(cookie)}</CookieKeyValueRow>
-        <CookieKeyValueRow label="HTTP Only">{cookie.httpOnly ? "Yes" : "No"}</CookieKeyValueRow>
-        <CookieKeyValueRow label="Secure">{cookie.secure ? "Yes" : "No"}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.domain")}>{cookieDomain(cookie)}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.path")}>{cookie.path}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.expires")}>{cookieExpires(cookie)}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.size")}>{cookieSize(cookie)}</CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.http_only")}>
+          {cookie.httpOnly ? t("common.yes") : t("common.no")}
+        </CookieKeyValueRow>
+        <CookieKeyValueRow label={t("cookies.secure")}>
+          {cookie.secure ? t("common.yes") : t("common.no")}
+        </CookieKeyValueRow>
         {cookie.sameSite && (
-          <CookieKeyValueRow label="Same Site">{cookie.sameSite}</CookieKeyValueRow>
+          <CookieKeyValueRow label={t("cookies.same_site")}>{cookie.sameSite}</CookieKeyValueRow>
         )}
       </KeyValueRows>
     </div>
@@ -429,12 +443,13 @@ function CookieEditor({
   onChange: (cookie: Cookie) => void;
   onExpiresInputChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   const sessionCookie = cookie.expires === "SessionEnd";
 
   return (
     <div className="overflow-y-auto">
       <KeyValueRows>
-        <CookieKeyValueRow align="middle" label="Name">
+        <CookieKeyValueRow align="middle" label={t("cookies.name")}>
           <CookieTextInput
             required
             autoFocus
@@ -443,7 +458,7 @@ function CookieEditor({
             onChange={(name) => onChange({ ...cookie, name })}
           />
         </CookieKeyValueRow>
-        <CookieKeyValueRow label="Value">
+        <CookieKeyValueRow label={t("cookies.value")}>
           <CookieTextarea
             value={cookie.value}
             onChange={(value) => onChange({ ...cookie, value })}
