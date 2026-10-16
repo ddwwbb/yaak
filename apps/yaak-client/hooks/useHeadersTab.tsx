@@ -29,5 +29,5 @@ export function useHeadersTab<T extends string>(
     };
 
     return [tab];
-  }, [inheritedHeaders, label, model, tabValue]);
+  }, [inheritedHeaders, label, model, tabValue, t]);
 }

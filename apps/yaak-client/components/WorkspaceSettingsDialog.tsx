@@ -54,7 +54,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
   if (workspace == null) {
     return (
       <Banner color="danger">
-        <InlineCode>Workspace</InlineCode> not found
+        <InlineCode>Workspace</InlineCode> {t("workspaces.not_found")}
       </Banner>
     );
   }
@@ -62,7 +62,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
   if (workspaceMeta == null)
     return (
       <Banner color="danger">
-        <InlineCode>WorkspaceMeta</InlineCode> not found for workspace
+        <InlineCode>WorkspaceMeta</InlineCode> {t("workspaces.meta_not_found")}
       </Banner>
     );
 
@@ -98,7 +98,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
       <TabContent value={TAB_HEADERS} className="overflow-y-auto h-full px-4">
         <HeadersEditor
           inheritedHeaders={inheritedHeaders}
-          inheritedHeadersLabel="Defaults"
+          inheritedHeadersLabel={t("headers_editor.defaults")}
           forceUpdateKey={workspace.id}
           headers={workspace.headers}
           onChange={(headers) => patchModel(workspace, { headers })}

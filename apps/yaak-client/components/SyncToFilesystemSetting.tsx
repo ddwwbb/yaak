@@ -1,6 +1,7 @@
 import { Banner, VStack } from "@yaakapp-internal/ui";
 import { useState } from "react";
 import { openWorkspaceFromSyncDir } from "../commands/openWorkspaceFromSyncDir";
+import { useTranslation } from "../lib/i18n";
 import { Button } from "./core/Button";
 import { Checkbox } from "./core/Checkbox";
 import { SettingRowBoolean, SettingRowDirectory } from "./core/SettingRow";
@@ -20,6 +21,7 @@ export function SyncToFilesystemSetting({
   onCreateNewWorkspace,
   value,
 }: SyncToFilesystemSettingProps) {
+  const { t } = useTranslation();
   const [syncDir, setSyncDir] = useState<string | null>(null);
 
   const handleFilePathChange = async (filePath: string | null) => {
@@ -40,7 +42,7 @@ export function SyncToFilesystemSetting({
       <VStack className="w-full" space={0}>
         {syncDir && (
           <Banner color="notice" className="mb-3 flex flex-col gap-1.5">
-            <p>Directory is not empty. Do you want to open it instead?</p>
+            <p>{t("workspaces.sync_directory_not_empty")}</p>
             <div>
               <Button
                 variant="border"
@@ -52,15 +54,15 @@ export function SyncToFilesystemSetting({
                   onCreateNewWorkspace();
                 }}
               >
-                Open Workspace
+                {t("workspaces.sync_open_workspace")}
               </Button>
             </div>
           </Banner>
         )}
 
         <SettingRowDirectory
-          title="Local directory sync"
-          description="Sync data to a folder for backup and Git integration."
+          title={t("workspaces.sync_title")}
+          description={t("workspaces.sync_description")}
           filePath={value.filePath}
           onChange={handleFilePathChange}
         />
@@ -68,8 +70,8 @@ export function SyncToFilesystemSetting({
         {value.filePath && typeof value.initGit === "boolean" && (
           <SettingRowBoolean
             checked={value.initGit}
-            title="Initialize Git Repo"
-            description="Create a Git repository in the selected sync directory."
+            title={t("workspaces.sync_init_git")}
+            description={t("workspaces.sync_init_git_description")}
             onChange={(initGit) => onChange({ ...value, initGit })}
           />
         )}
@@ -81,7 +83,7 @@ export function SyncToFilesystemSetting({
     <VStack className="w-full my-2" space={3}>
       {syncDir && (
         <Banner color="notice" className="flex flex-col gap-1.5">
-          <p>Directory is not empty. Do you want to open it instead?</p>
+          <p>{t("workspaces.sync_directory_not_empty")}</p>
           <div>
             <Button
               variant="border"
@@ -93,7 +95,7 @@ export function SyncToFilesystemSetting({
                 onCreateNewWorkspace();
               }}
             >
-              Open Workspace
+              {t("workspaces.sync_open_workspace")}
             </Button>
           </div>
         </Banner>
@@ -101,10 +103,10 @@ export function SyncToFilesystemSetting({
 
       <SelectFile
         directory
-        label="Local directory sync"
+        label={t("workspaces.sync_title")}
         size="xs"
         noun="Directory"
-        help="Sync data to a folder for backup and Git integration."
+        help={t("workspaces.sync_description")}
         filePath={value.filePath}
         onChange={async ({ filePath }) => handleFilePathChange(filePath)}
       />
@@ -113,7 +115,7 @@ export function SyncToFilesystemSetting({
         <Checkbox
           checked={value.initGit}
           onChange={(initGit) => onChange({ ...value, initGit })}
-          title="Initialize Git Repo"
+          title={t("workspaces.sync_init_git")}
         />
       )}
     </VStack>

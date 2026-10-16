@@ -2,6 +2,7 @@ import type { AnyModel } from "@yaakapp-internal/models";
 import { patchModel } from "@yaakapp-internal/models";
 import classNames from "classnames";
 import type { ReactNode } from "react";
+import { useTranslation } from "../../lib/i18n";
 import { CopyIconButton } from "../CopyIconButton";
 import { Checkbox } from "./Checkbox";
 import { IconButton, type IconButtonProps } from "./IconButton";
@@ -109,6 +110,7 @@ export function SettingValue({
   enableCopy?: boolean;
   value: ReactNode;
 }) {
+  const { t } = useTranslation();
   const textValue = typeof value === "string" || typeof value === "number" ? `${value}` : null;
   const textToCopy = copyText ?? textValue;
 
@@ -133,7 +135,7 @@ export function SettingValue({
         />
       ))}
       {enableCopy && textToCopy != null && (
-        <CopyIconButton size="2xs" text={textToCopy} title="Copy value" />
+        <CopyIconButton size="2xs" text={textToCopy} title={t("settings.general.copy_value")} />
       )}
     </>
   );

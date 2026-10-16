@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { capitalize } from "../lib/capitalize";
 import { jotaiStore } from "../lib/jotai";
 import { t, useTranslation } from "../lib/i18n";
+import { en } from "../lib/i18n/locales/en";
 
 const HOLD_KEYS = ["Shift", "Control", "Command", "Alt", "Meta"];
 const SINGLE_WHITELIST = ["Delete", "Enter", "Backspace"];
@@ -130,35 +131,7 @@ function getHotkeys(): Partial<Record<HotkeyAction, string[]>> {
   return jotaiStore.get(hotkeysAtom);
 }
 
-const hotkeyLabels: Record<HotkeyAction, string> = {
-  "app.zoom_in": "Zoom In",
-  "app.zoom_out": "Zoom Out",
-  "app.zoom_reset": "Zoom to Actual Size",
-  "command_palette.toggle": "Toggle Command Palette",
-  "cookies_editor.show": "Show Cookies",
-  "editor.autocomplete": "Trigger Autocomplete",
-  "environment_editor.toggle": "Edit Environments",
-  "hotkeys.showHelp": "Show Keyboard Shortcuts",
-  "model.create": "New Request",
-  "model.duplicate": "Duplicate Request",
-  "request.rename": "Rename Active Request",
-  "request.send": "Send Active Request",
-  "switcher.next": "Go To Previous Request",
-  "switcher.prev": "Go To Next Request",
-  "switcher.toggle": "Toggle Request Switcher",
-  "settings.show": "Open Settings",
-  "sidebar.filter": "Filter Sidebar",
-  "sidebar.expand_all": "Expand All Folders",
-  "sidebar.collapse_all": "Collapse All Folders",
-  "sidebar.selected.delete": "Delete Selected Sidebar Item",
-  "sidebar.selected.duplicate": "Duplicate Selected Sidebar Item",
-  "sidebar.selected.move": "Move Selected to Workspace",
-  "sidebar.selected.rename": "Rename Selected Sidebar Item",
-  "sidebar.focus": "Focus or Toggle Sidebar",
-  "sidebar.context_menu": "Show Context Menu",
-  "url_bar.focus": "Focus URL",
-  "workspace_settings.show": "Open Workspace Settings",
-};
+const hotkeyLabels: Record<HotkeyAction, string> = en.hotkeys.actions;
 
 const layoutInsensitiveKeys = [
   "Equal",
@@ -323,7 +296,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
 export function useHotkeyLabel(action: HotkeyAction): string {
   const { t } = useTranslation();
-  return t(`hotkeys.actions.${action}`, undefined, hotkeyLabels[action]);
+  return t(`hotkeys.actions.${action}`);
 }
 
 export function getHotkeyScope(action: HotkeyAction): string {

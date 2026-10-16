@@ -1,14 +1,13 @@
 import type { Folder } from "@yaakapp-internal/models";
-import { modelTypeLabel, patchModel } from "@yaakapp-internal/models";
+import { patchModel } from "@yaakapp-internal/models";
 import { HStack, Icon, InlineCode } from "@yaakapp-internal/ui";
-import { useTranslation } from "../lib/i18n";
+import { translatedModelType, useTranslation } from "../lib/i18n";
 import { useMemo } from "react";
 import { openFolderSettings } from "../commands/openFolderSettings";
 import { openWorkspaceSettings } from "../commands/openWorkspaceSettings";
 import { IconTooltip } from "../components/core/IconTooltip";
 import type { RadioDropdownProps } from "../components/core/RadioDropdown";
 import type { TabItem } from "../components/core/Tabs/Tabs";
-import { capitalize } from "../lib/capitalize";
 import { showConfirm } from "../lib/confirm";
 import { resolvedModelName } from "../lib/resolvedModelName";
 import { useHttpAuthenticationSummaries } from "./useHttpAuthentication";
@@ -30,12 +29,13 @@ export function useAuthTab<T extends string>(tabValue: T, model: AuthenticatedMo
     };
 
     return [tab];
-  }, [model, options, tabValue]);
+  }, [model, options, tabValue, t]);
 }
 
 export function useAuthDropdownOptions(
   model: AuthenticatedModel | null,
 ): Omit<RadioDropdownProps, "children"> | null {
+  const { t } = useTranslation();
   const authentication = useHttpAuthenticationSummaries();
   const inheritedAuth = useInheritedAuthentication(model);
   const ancestors = useModelAncestors(model);
@@ -48,30 +48,34 @@ export function useAuthDropdownOptions(
       value: model.authenticationType,
       items: [
         ...authentication.map((a) => ({
-          label: a.label || "UNKNOWN",
+          label: a.label || t("authentication.unknown"),
           shortLabel: a.shortLabel,
           value: a.name,
         })),
         { type: "separator" },
         {
-          label: "Inherit from Parent",
+          label: t("authentication.inherit_from_parent"),
           shortLabel:
             inheritedAuth != null && inheritedAuth.authenticationType !== "none" ? (
               <HStack space={1.5}>
                 {authentication.find((a) => a.name === inheritedAuth.authenticationType)
-                  ?.shortLabel ?? "UNKNOWN"}
+                  ?.shortLabel ?? t("authentication.unknown")}
                 <IconTooltip
                   icon="zap_off"
                   iconSize="xs"
-                  content="Authentication was inherited from an ancestor"
+                  content={t("authentication.inherited_tooltip")}
                 />
               </HStack>
             ) : (
-              "Auth"
+              t("request.tabs.auth")
             ),
           value: null,
         },
-        { label: "No Auth", shortLabel: "No Auth", value: "none" },
+        {
+          label: t("authentication.no_auth"),
+          shortLabel: t("authentication.no_auth"),
+          value: "none",
+        },
       ],
       itemsAfter: (() => {
         const actions: (
@@ -91,21 +95,24 @@ export function useAuthDropdownOptions(
           (parentModel.authenticationType == null || parentModel.authenticationType === "none")
         ) {
           actions.push(
-            { type: "separator", label: "Actions" },
+            { type: "separator", label: t("common.actions") },
             {
-              label: `Promote to ${capitalize(parentModel.model)}`,
+              label: t("authentication.promote_to", {
+                model: translatedModelType(parentModel.model),
+              }),
               leftSlot: (
                 <Icon icon={parentModel.model === "workspace" ? "corner_right_up" : "folder_up"} />
               ),
               onSelect: async () => {
                 const confirmed = await showConfirm({
                   id: "promote-auth-confirm",
-                  title: "Promote Authentication",
-                  confirmText: "Promote",
+                  title: t("authentication.promote_title"),
+                  confirmText: t("authentication.promote"),
                   description: (
                     <>
-                      Move authentication config to{" "}
-                      <InlineCode>{resolvedModelName(parentModel)}</InlineCode>?
+                      {t("authentication.promote_description_before")}
+                      <InlineCode>{resolvedModelName(parentModel)}</InlineCode>
+                      {t("authentication.promote_description_after")}
                     </>
                   ),
                 });
@@ -136,10 +143,12 @@ export function useAuthDropdownOptions(
         );
         if (ancestorWithAuth) {
           if (actions.length === 0) {
-            actions.push({ type: "separator", label: "Actions" });
+            actions.push({ type: "separator", label: t("common.actions") });
           }
           actions.push({
-            label: `Copy from ${modelTypeLabel(ancestorWithAuth)}`,
+            label: t("authentication.copy_from", {
+              model: translatedModelType(ancestorWithAuth.model),
+            }),
             leftSlot: (
               <Icon
                 icon={ancestorWithAuth.model === "workspace" ? "corner_right_down" : "folder_down"}
@@ -148,16 +157,18 @@ export function useAuthDropdownOptions(
             onSelect: async () => {
               const confirmed = await showConfirm({
                 id: "copy-auth-confirm",
-                title: "Copy Authentication",
-                confirmText: "Copy",
+                title: t("authentication.copy_title"),
+                confirmText: t("common.copy"),
                 description: (
                   <>
-                    Copy{" "}
+                    {t("authentication.copy_description_before")}
                     {authentication.find((a) => a.name === ancestorWithAuth.authenticationType)
-                      ?.label ?? "authentication"}{" "}
-                    config from <InlineCode>{resolvedModelName(ancestorWithAuth)}</InlineCode>? This
-                    will override the current authentication but will not affect the{" "}
-                    {modelTypeLabel(ancestorWithAuth).toLowerCase()}.
+                      ?.label ?? t("authentication.authentication")}
+                    {t("authentication.copy_description_from")}
+                    <InlineCode>{resolvedModelName(ancestorWithAuth)}</InlineCode>
+                    {t("authentication.copy_description_after", {
+                      model: translatedModelType(ancestorWithAuth.model).toLowerCase(),
+                    })}
                   </>
                 ),
               });
@@ -183,5 +194,5 @@ export function useAuthDropdownOptions(
         await patchModel(model, { authentication, authenticationType });
       },
     };
-  }, [authentication, inheritedAuth, model, parentModel, ancestors]);
+  }, [authentication, inheritedAuth, model, parentModel, ancestors, t]);
 }

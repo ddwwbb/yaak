@@ -1,15 +1,14 @@
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import { Heading, VStack } from "@yaakapp-internal/ui";
-import { useTranslation } from "../../lib/i18n";
 import { useAtomValue } from "jotai";
 import { useCheckForUpdates } from "../../hooks/useCheckForUpdates";
 import { appInfo } from "../../lib/appInfo";
-import { revealInFinderText } from "../../lib/reveal";
+import { platform } from "@yaakapp-internal/platform";
 import { CargoFeature } from "../CargoFeature";
 import { CommercialUseBanner } from "../CommercialUseBanner";
 import { DismissibleBanner } from "../core/DismissibleBanner";
 import { IconButton } from "../core/IconButton";
-import { platform } from "@yaakapp-internal/platform";
+import { useTranslation } from "../../lib/i18n";
 import {
   ModelSettingRowBoolean,
   ModelSettingSelectControl,
@@ -27,6 +26,10 @@ export function SettingsGeneral() {
   const settings = useAtomValue(settingsAtom);
   const { t } = useTranslation();
   const checkForUpdates = useCheckForUpdates();
+  const os = platform.osType();
+  const revealTitle = t(
+    `settings.general.reveal_${os === "macos" || os === "windows" ? os : "other"}`,
+  );
 
   if (settings == null) {
     return null;
@@ -42,7 +45,10 @@ export function SettingsGeneral() {
         <p className="text-text-subtle">{t("settings.general.description")}</p>
       </div>
       <div className="mt-3 mb-5">
-        <CommercialUseBanner source="settings-general" title="Using Yaak for work?" />
+        <CommercialUseBanner
+          source="settings-general"
+          title={t("settings.general.commercial_use_title")}
+        />
       </div>
       <SettingsList className="space-y-8">
         <CargoFeature feature="updater">
@@ -88,21 +94,21 @@ export function SettingsGeneral() {
             <ModelSettingRowBoolean
               model={settings}
               modelKey="autoDownloadUpdates"
-              title="Automatically download updates"
-              description="Download Yaak updates in the background so they are ready to install."
+              title={t("settings.general.auto_download_updates")}
+              description={t("settings.general.auto_download_updates_desc")}
               disabled={!settings.autoupdate}
             />
 
             <ModelSettingRowBoolean
               model={settings}
               modelKey="checkNotifications"
-              title="Check for notifications"
-              description="Periodically ping Yaak servers to check for relevant notifications."
+              title={t("settings.general.check_notifications")}
+              description={t("settings.general.check_notifications_desc")}
             />
 
             <SettingRowBoolean
-              title="Send anonymous usage statistics"
-              description="Yaak is local-first and does not collect analytics or usage data."
+              title={t("settings.general.send_usage_statistics")}
+              description={t("settings.general.send_usage_statistics_desc")}
               disabled
               checked={false}
               onChange={() => {}}
@@ -111,7 +117,7 @@ export function SettingsGeneral() {
         </CargoFeature>
 
         <CargoFeature feature="license">
-          <SettingsSection title="Feedback">
+          <SettingsSection title={t("settings.general.feedback_section")}>
             <SettingRowBoolean
               title={t("settings.general.prompt_feedback")}
               description={t("settings.general.prompt_feedback_desc")}
@@ -128,26 +134,29 @@ export function SettingsGeneral() {
             className="w-full p-4 max-w-xl mr-auto"
           >
             <p>
-              Workspace specific settings have moved to <b>Workspace Settings</b>, accessible from
-              the workspace switcher menu.
+              {t("settings.general.workspace_settings_moved_before")} <b>{t("workspaces.title")}</b>
+              {t("settings.general.workspace_settings_moved_after")}
             </p>
           </DismissibleBanner>
         )}
 
-        <SettingsSection title="App Info">
-          <SettingRow title="Version" description="Current Yaak version.">
+        <SettingsSection title={t("settings.general.app_info_section")}>
+          <SettingRow
+            title={t("settings.general.version")}
+            description={t("settings.general.version_desc")}
+          >
             <SettingValue value={appInfo.version} />
           </SettingRow>
           <SettingRow
-            title="Data Directory"
-            description="Where Yaak stores application data."
+            title={t("settings.general.data_directory")}
+            description={t("settings.general.data_directory_desc")}
             controlClassName="min-w-0 max-w-[min(42rem,55vw)] gap-2"
           >
             <SettingValue
               value={appInfo.appDataDir}
               actions={[
                 {
-                  title: revealInFinderText,
+                  title: revealTitle,
                   icon: "folder_open",
                   onClick: () => platform.revealItemInDir(appInfo.appDataDir),
                 },
@@ -155,15 +164,15 @@ export function SettingsGeneral() {
             />
           </SettingRow>
           <SettingRow
-            title="Logs Directory"
-            description="Where Yaak writes application logs."
+            title={t("settings.general.logs_directory")}
+            description={t("settings.general.logs_directory_desc")}
             controlClassName="min-w-0 max-w-[min(42rem,55vw)] gap-2"
           >
             <SettingValue
               value={appInfo.appLogDir}
               actions={[
                 {
-                  title: revealInFinderText,
+                  title: revealTitle,
                   icon: "folder_open",
                   onClick: () => platform.revealItemInDir(appInfo.appLogDir),
                 },

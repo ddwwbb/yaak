@@ -5,18 +5,12 @@ import { appInfo } from "../lib/appInfo";
 import { pricingUrl } from "../lib/pricingUrl";
 import { DismissibleBanner } from "./core/DismissibleBanner";
 import { platform } from "@yaakapp-internal/platform";
+import { useTranslation } from "../lib/i18n";
 
 const COMMERCIAL_USE_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
-const COMMERCIAL_USE_BANNER_MESSAGE =
-  "Personal use of Yaak is free. If you’re using Yaak at work, please purchase a license.";
 
-export function CommercialUseBanner({
-  source,
-  title,
-}: {
-  source: string;
-  title: string;
-}) {
+export function CommercialUseBanner({ source, title }: { source: string; title: string }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const snoozeStartedRef = useRef(false);
   const {
@@ -63,13 +57,11 @@ export function CommercialUseBanner({
         id={`commercial-use:${source}`}
         color="info"
         className="w-full"
-        onDismiss={() =>
-          setSnoozedAt(JSON.stringify({ source, at: new Date().toISOString() }))
-        }
+        onDismiss={() => setSnoozedAt(JSON.stringify({ source, at: new Date().toISOString() }))}
         onShow={handleShow}
         actions={[
           {
-            label: "Purchase License",
+            label: t("menu.purchase_license"),
             color: "info",
             variant: "solid",
             onClick: () => {
@@ -80,7 +72,7 @@ export function CommercialUseBanner({
       >
         <div className="text-sm">
           <p className="font-semibold text-text">{title}</p>
-          <p className="mt-0.5 text-text-subtle">{COMMERCIAL_USE_BANNER_MESSAGE}</p>
+          <p className="mt-0.5 text-text-subtle">{t("settings.general.commercial_use_desc")}</p>
         </div>
       </DismissibleBanner>
     </div>

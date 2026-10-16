@@ -25,7 +25,6 @@ import {
   hotkeysAtom,
   useHotkeyLabel,
 } from "../../hooks/useHotKey";
-import { capitalize } from "../../lib/capitalize";
 import { showDialog } from "../../lib/dialog";
 import { Button } from "../core/Button";
 import { Dropdown, type DropdownItem } from "../core/Dropdown";
@@ -84,12 +83,12 @@ export function SettingsHotkeys() {
       return hotkeyActions;
     }
     return hotkeyActions.filter((action) => {
-      const scope = getHotkeyScope(action).replace(/_/g, " ");
-      const label = action.replace(/[_.]/g, " ");
-      const searchText = `${scope} ${label}`;
+      const scope = t(`hotkeys.scopes.${action.split(".")[0]}`);
+      const label = t(`hotkeys.actions.${action}`);
+      const searchText = `${scope} ${label} ${action.replace(/[_.]/g, " ")}`;
       return fuzzyMatch(searchText, filter) != null;
     });
-  }, [filter]);
+  }, [filter, t]);
 
   if (settings == null) {
     return null;
@@ -102,7 +101,7 @@ export function SettingsHotkeys() {
         <p className="text-text-subtle">{t("settings.shortcuts.description")}</p>
       </div>
       <PlainInput
-        label="Filter"
+        label={t("common.filter")}
         placeholder={t("settings.shortcuts.filter_placeholder")}
         defaultValue={filter}
         onChange={setFilter}
@@ -161,7 +160,7 @@ interface HotkeyRowProps {
 function HotkeyRow({ action, currentKeys, defaultKeys, onSave, onReset }: HotkeyRowProps) {
   const { t } = useTranslation();
   const label = useHotkeyLabel(action);
-  const scope = capitalize(getHotkeyScope(action).replace(/_/g, " "));
+  const scope = getHotkeyScope(action);
   const isCustomized = !arraysEqual(currentKeys, defaultKeys);
   const isDisabled = currentKeys.length === 0;
 
@@ -255,7 +254,7 @@ function HotkeyRow({ action, currentKeys, defaultKeys, onSave, onReset }: Hotkey
       <TableCell>
         <HStack space={1.5} className="py-1">
           {isDisabled ? (
-            <span className="text-text-subtlest">Disabled</span>
+            <span className="text-text-subtlest">{t("common.disabled")}</span>
           ) : (
             currentKeys.map((k) => (
               <HotkeyRaw key={k} labelParts={formatHotkeyString(k)} variant="with-bg" />
@@ -268,7 +267,7 @@ function HotkeyRow({ action, currentKeys, defaultKeys, onSave, onReset }: Hotkey
           <IconButton
             icon="ellipsis_vertical"
             size="sm"
-            title="Hotkey actions"
+            title={t("settings.shortcuts.actions")}
             className="ml-auto text-text-subtlest"
           />
         </Dropdown>
@@ -333,7 +332,7 @@ function RecordHotkeyDialog({ label, onSave, onCancel }: RecordHotkeyDialogProps
         <button
           type="button"
           data-disable-hotkey
-          aria-label="Keyboard shortcut input"
+          aria-label={t("settings.shortcuts.input_label")}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           onClick={(e) => {

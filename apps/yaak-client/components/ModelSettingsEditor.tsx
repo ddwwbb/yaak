@@ -11,6 +11,7 @@ import type {
 } from "@yaakapp-internal/models";
 import { patchModel } from "@yaakapp-internal/models";
 import { useModelAncestors } from "../hooks/useModelAncestors";
+import { useTranslation } from "../lib/i18n";
 import {
   modelSupportsSetting,
   type RequestSettingDefinition,
@@ -67,6 +68,7 @@ type MessageSizeSettingsPatch = {
 };
 
 export function ModelSettingsEditor({ model, showSectionTitles = false }: Props) {
+  const { t } = useTranslation();
   const ancestors = useModelAncestors(model);
   const supportsHttpSettings = modelSupportsHttpSettings(model);
   const supportsCookieSettings = modelSupportsCookieSettings(model);
@@ -76,7 +78,7 @@ export function ModelSettingsEditor({ model, showSectionTitles = false }: Props)
   return (
     <SettingsList className="space-y-8">
       {supportsTlsSettings && (
-        <SettingsSection title={showSectionTitles ? "Requests" : null}>
+        <SettingsSection title={showSectionTitles ? t("request_settings.requests") : null}>
           {supportsHttpSettings && (
             <IntegerSettingRow
               settingDefinition={SETTING_REQUEST_TIMEOUT}
@@ -158,7 +160,9 @@ export function ModelSettingsEditor({ model, showSectionTitles = false }: Props)
         </SettingsSection>
       )}
       {supportsCookieSettings && (
-        <SettingsSection title={supportsTlsSettings || showSectionTitles ? "Cookies" : null}>
+        <SettingsSection
+          title={supportsTlsSettings || showSectionTitles ? t("request_settings.cookies") : null}
+        >
           <BooleanSettingRow
             settingDefinition={SETTING_SEND_COOKIES}
             setting={model.settingSendCookies}
@@ -302,6 +306,9 @@ function BooleanSettingRow({
   settingDefinition: RequestSettingDefinition;
   onChange: (setting: BooleanSetting) => void;
 }) {
+  const { t } = useTranslation();
+  const title = t(`request_settings.${settingDefinition.modelKey}.title`);
+  const description = t(`request_settings.${settingDefinition.modelKey}.description`);
   const inherited = isInheritedSetting(setting);
   const overridden = inherited ? setting.enabled === true : false;
   const value = inherited ? (overridden ? setting.value : inheritedValue) : setting;
@@ -310,8 +317,8 @@ function BooleanSettingRow({
     return (
       <SettingRowBoolean
         checked={value}
-        title={settingDefinition.title}
-        description={settingDefinition.description}
+        title={title}
+        description={description}
         onChange={(value) => onChange(value)}
       />
     );
@@ -319,27 +326,22 @@ function BooleanSettingRow({
 
   return (
     <SettingOverrideRow
-      title={settingDefinition.title}
-      description={settingDefinition.description}
+      title={title}
+      description={description}
+      resetTitle={t("request_settings.reset_override")}
       overridden={overridden}
       onResetOverride={() => onChange({ ...setting, enabled: false })}
     >
       <Checkbox
         hideLabel
         size="md"
-        title={settingDefinition.title}
+        title={title}
         checked={value}
         onChange={(value) => onChange({ ...setting, enabled: true, value })}
       />
     </SettingOverrideRow>
   );
 }
-
-const HTTP_VERSION_OPTIONS: { label: string; value: HttpVersion }[] = [
-  { label: "Automatic", value: "auto" },
-  { label: "HTTP/1.1", value: "http1" },
-  { label: "HTTP/2", value: "http2" },
-];
 
 function HttpVersionSettingRow({
   inheritedValue,
@@ -352,20 +354,28 @@ function HttpVersionSettingRow({
   settingDefinition: RequestSettingDefinition<"settingHttpVersion">;
   onChange: (setting: HttpVersionSetting) => void;
 }) {
+  const { t } = useTranslation();
+  const title = t(`request_settings.${settingDefinition.modelKey}.title`);
+  const description = t(`request_settings.${settingDefinition.modelKey}.description`);
+  const options: { label: string; value: HttpVersion }[] = [
+    { label: t("common.automatic"), value: "auto" },
+    { label: "HTTP/1.1", value: "http1" },
+    { label: "HTTP/2", value: "http2" },
+  ];
   const inherited = isInheritedSetting(setting);
   const overridden = inherited ? setting.enabled === true : false;
   const value = inherited ? (overridden ? setting.value : inheritedValue) : setting;
 
   if (!inherited) {
     return (
-      <SettingRow title={settingDefinition.title} description={settingDefinition.description}>
+      <SettingRow title={title} description={description}>
         <Select
           hideLabel
           name={settingDefinition.modelKey}
-          label={settingDefinition.title}
+          label={title}
           size="sm"
           value={value}
-          options={HTTP_VERSION_OPTIONS}
+          options={options}
           onChange={(value) => onChange(value)}
         />
       </SettingRow>
@@ -374,18 +384,19 @@ function HttpVersionSettingRow({
 
   return (
     <SettingOverrideRow
-      title={settingDefinition.title}
-      description={settingDefinition.description}
+      title={title}
+      description={description}
+      resetTitle={t("request_settings.reset_override")}
       overridden={overridden}
       onResetOverride={() => onChange({ ...setting, enabled: false })}
     >
       <Select
         hideLabel
         name={settingDefinition.modelKey}
-        label={settingDefinition.title}
+        label={title}
         size="sm"
         value={value}
-        options={HTTP_VERSION_OPTIONS}
+        options={options}
         onChange={(value) => onChange({ ...setting, enabled: true, value })}
       />
     </SettingOverrideRow>
@@ -403,16 +414,19 @@ function IntegerSettingRow({
   settingDefinition: RequestSettingDefinition<"settingRequestTimeout">;
   onChange: (setting: IntegerSetting) => void;
 }) {
+  const { t } = useTranslation();
+  const title = t(`request_settings.${settingDefinition.modelKey}.title`);
+  const description = t(`request_settings.${settingDefinition.modelKey}.description`);
   const inherited = isInheritedSetting(setting);
   const overridden = inherited ? setting.enabled === true : false;
   const value = inherited ? (overridden ? setting.value : inheritedValue) : setting;
 
   if (!inherited) {
     return (
-      <SettingRow title={settingDefinition.title} description={settingDefinition.description}>
+      <SettingRow title={title} description={description}>
         <NumberUnitInput
           name={settingDefinition.modelKey}
-          label={settingDefinition.title}
+          label={title}
           unit="ms"
           value={`${value}`}
           placeholder={`${settingDefinition.defaultValue}`}
@@ -425,14 +439,15 @@ function IntegerSettingRow({
 
   return (
     <SettingOverrideRow
-      title={settingDefinition.title}
-      description={settingDefinition.description}
+      title={title}
+      description={description}
+      resetTitle={t("request_settings.reset_override")}
       overridden={overridden}
       onResetOverride={() => onChange({ ...setting, enabled: false })}
     >
       <NumberUnitInput
         name={settingDefinition.modelKey}
-        label={settingDefinition.title}
+        label={title}
         unit="ms"
         value={`${value}`}
         placeholder={`${settingDefinition.defaultValue}`}
@@ -460,6 +475,9 @@ function MessageSizeSettingRow({
   settingDefinition: RequestSettingDefinition<"settingRequestMessageSize">;
   onChange: (setting: IntegerSetting) => void;
 }) {
+  const { t } = useTranslation();
+  const title = t(`request_settings.${settingDefinition.modelKey}.title`);
+  const description = t(`request_settings.${settingDefinition.modelKey}.description`);
   const inherited = isInheritedSetting(setting);
   const overridden = inherited ? setting.enabled === true : false;
   const value = inherited ? (overridden ? setting.value : inheritedValue) : setting;
@@ -468,10 +486,10 @@ function MessageSizeSettingRow({
 
   if (!inherited) {
     return (
-      <SettingRow title={settingDefinition.title} description={settingDefinition.description}>
+      <SettingRow title={title} description={description}>
         <MessageSizeInput
           name={settingDefinition.modelKey}
-          label={settingDefinition.title}
+          label={title}
           value={displayValue}
           placeholder={placeholder}
           onChange={(value) => onChange(parseMegabytes(value))}
@@ -482,14 +500,15 @@ function MessageSizeSettingRow({
 
   return (
     <SettingOverrideRow
-      title={settingDefinition.title}
-      description={settingDefinition.description}
+      title={title}
+      description={description}
+      resetTitle={t("request_settings.reset_override")}
       overridden={overridden}
       onResetOverride={() => onChange({ ...setting, enabled: false })}
     >
       <MessageSizeInput
         name={settingDefinition.modelKey}
-        label={settingDefinition.title}
+        label={title}
         value={displayValue}
         placeholder={placeholder}
         onChange={(value) =>

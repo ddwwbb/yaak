@@ -63,6 +63,23 @@ lists which commands the browser host implements and which it declines.
 Desktop builds are unaffected: without the flag the platform package installs
 the Tauri host exactly as before.
 
+## Interface Translations
+
+Client translations live in `apps/yaak-client/lib/i18n/locales/en.ts` and `zh-CN.ts`.
+Use `useTranslation()` for component labels, descriptions, placeholders, and actions so
+they update when the interface language changes. Include `t` in memo dependencies.
+Protocol names, units, key combinations, and user-entered data remain unchanged.
+
+Translation paths support nested namespaces and literal dotted action identifiers,
+such as `hotkeys.actions.sidebar.selected.delete`. At each dictionary level, an exact
+remaining key takes precedence over further path traversal. Missing entries use the
+English dictionary before an explicit fallback.
+
+For a UI smoke check, switch between Simplified Chinese and English in Interface
+settings and inspect General, Shortcuts, and the workspace Settings, Headers, Auth,
+and DNS pages. Update and feedback sections require a desktop build with the matching
+Cargo features; the browser host hides them.
+
 ## macOS Release Signing
 
 The release workflow (`.github/workflows/release-app.yml`) uses ad-hoc signing

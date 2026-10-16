@@ -44,6 +44,19 @@ describe("i18n", () => {
     expect(translatedModelType("folder")).toBe("Folder");
   });
 
+  it("resolves action identifiers containing literal dots across language changes", () => {
+    setLanguage("zh-CN");
+    expect(t("hotkeys.actions.app.zoom_in")).toBe("放大界面");
+    expect(t("hotkeys.actions.sidebar.selected.delete")).toBe("删除选中的侧边栏项");
+    expect(t("hotkeys.actions.sidebar.missing", undefined, "Missing action")).toBe(
+      "Missing action",
+    );
+
+    setLanguage("en-US");
+    expect(t("hotkeys.actions.app.zoom_in")).toBe("Zoom In");
+    expect(t("hotkeys.actions.sidebar.selected.delete")).toBe("Delete Selected Sidebar Item");
+  });
+
   it("updates resolved language when setting language", () => {
     setLanguage("zh-CN");
     expect(jotaiStore.get(languageAtom)).toBe("zh-CN");

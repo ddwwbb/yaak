@@ -9,6 +9,7 @@ import type { HeaderValuePreset } from "../lib/data/headerValuePresets";
 import { headerNames } from "../lib/data/headerNames";
 import { mimeTypes } from "../lib/data/mimetypes";
 import { userAgents } from "../lib/data/userAgents";
+import { useTranslation } from "../lib/i18n";
 import { validateHttpHeader } from "../lib/validateHttpHeader";
 import { CountBadge } from "./core/CountBadge";
 import { DetailsBanner } from "./core/DetailsBanner";
@@ -33,10 +34,11 @@ export function HeadersEditor({
   stateKey,
   headers,
   inheritedHeaders,
-  inheritedHeadersLabel = "Inherited",
+  inheritedHeadersLabel,
   onChange,
   forceUpdateKey,
 }: Props) {
+  const { t } = useTranslation();
   // Get header names defined at current level (case-insensitive)
   const currentHeaderNames = new Set(
     headers.filter((h) => h.name).map((h) => h.name.toLowerCase()),
@@ -64,7 +66,8 @@ export function HeadersEditor({
           className="text-sm"
           summary={
             <HStack>
-              {inheritedHeadersLabel} <CountBadge count={validInheritedHeaders.length} />
+              {inheritedHeadersLabel ?? t("headers_editor.inherited")}{" "}
+              <CountBadge count={validInheritedHeaders.length} />
             </HStack>
           }
         >
@@ -78,6 +81,8 @@ export function HeadersEditor({
                 className="py-1"
                 pair={ensurePairId(pair)}
                 stateKey={null}
+                namePlaceholder={t("headers_editor.name_placeholder")}
+                valuePlaceholder={t("headers_editor.value_placeholder")}
                 nameAutocompleteFunctions
                 nameAutocompleteVariables
                 valueAutocompleteFunctions
@@ -92,13 +97,14 @@ export function HeadersEditor({
         nameAutocomplete={nameAutocomplete}
         nameAutocompleteFunctions
         nameAutocompleteVariables
-        namePlaceholder="Header-Name"
+        namePlaceholder={t("headers_editor.name_placeholder")}
         nameValidate={validateHttpHeader}
         onChange={onChange}
         pairs={headers}
         preferenceName="headers"
         stateKey={stateKey}
         valueType={valueType}
+        valuePlaceholder={t("headers_editor.value_placeholder")}
         valueAutocomplete={valueAutocomplete}
         valueAutocompleteFunctions
         valueAutocompleteVariables

@@ -16,6 +16,7 @@ import { useRandomKey } from "../../hooks/useRandomKey";
 import { useToggle } from "../../hooks/useToggle";
 import { languageFromContentType } from "../../lib/contentType";
 import { showDialog } from "../../lib/dialog";
+import { useTranslation } from "../../lib/i18n";
 import { computeSideForDragMove, DropMarker } from "@yaakapp-internal/ui";
 import { showPrompt } from "../../lib/prompt";
 import { SelectFile } from "../SelectFile";
@@ -144,6 +145,7 @@ function PairEditorInner({
   valueValidate,
   setRef,
 }: PairEditorProps) {
+  const { t } = useTranslation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState<EditablePairWithId | null>(null);
   const [pairs, setPairs] = useState<EditablePairWithId[]>([]);
@@ -405,7 +407,7 @@ function PairEditorInner({
           })}
           {!showAll && pairs.length > MAX_INITIAL_PAIRS && (
             <Button onClick={toggleShowAll} variant="border" className="m-2" size="xs">
-              Show {pairs.length - MAX_INITIAL_PAIRS} More
+              {t("pair_editor.show_more", { count: pairs.length - MAX_INITIAL_PAIRS })}
             </Button>
           )}
           <DragOverlay dropAnimation={null}>
@@ -507,6 +509,7 @@ export function PairEditorRow({
   valueValidate,
   setRef,
 }: PairEditorRowProps) {
+  const { t } = useTranslation();
   const nameInputRef = useRef<InputHandle>(null);
   const valueInputRef = useRef<InputHandle>(null);
   const handle = useRef<RowHandle>({
@@ -607,7 +610,7 @@ export function PairEditorRow({
       showDialog({
         id: "pair-edit-multiline",
         size: "dynamic",
-        title: <>Edit {pair.name}</>,
+        title: t("pair_editor.edit_name", { name: pair.name }),
         render: ({ hide }) => (
           <MultilineEditDialog
             hide={hide}
@@ -617,23 +620,23 @@ export function PairEditorRow({
           />
         ),
       }),
-    [handleChangeValueText, pair.contentType, pair.name, pair.value],
+    [handleChangeValueText, pair.contentType, pair.name, pair.value, t],
   );
 
   const defaultItems = useMemo(
     (): DropdownItem[] => [
       {
-        label: "Edit Multi-line",
+        label: t("pair_editor.edit_multiline"),
         onSelect: handleEditMultiLineValue,
         hidden: !allowMultilineValues,
       },
       {
-        label: "Delete",
+        label: t("common.delete"),
         onSelect: handleDelete,
         color: "danger",
       },
     ],
-    [allowMultilineValues, handleDelete, handleEditMultiLineValue],
+    [allowMultilineValues, handleDelete, handleEditMultiLineValue, t],
   );
 
   const { attributes, listeners, setNodeRef: setDraggableRef } = useDraggable({ id: pair.id });
@@ -671,7 +674,7 @@ export function PairEditorRow({
     >
       <Checkbox
         hideLabel
-        title={pair.enabled ? "Disable item" : "Enable item"}
+        title={pair.enabled ? t("pair_editor.disable_item") : t("pair_editor.enable_item")}
         disabled={isLast || disabled}
         checked={isLast ? false : !!pair.enabled}
         className={classNames(isLast && "opacity-disabled!")}
@@ -712,12 +715,12 @@ export function PairEditorRow({
           forceUpdateKey={forceUpdateKey}
           containerClassName={classNames("bg-surface", isLast && "border-dashed")}
           defaultValue={pair.name}
-          label="Name"
+          label={t("common.name")}
           name={`name[${index}]`}
           onBlur={handleBlurName}
           onChange={handleChangeName}
           onFocus={handleFocusName}
-          placeholder={namePlaceholder ?? "name"}
+          placeholder={namePlaceholder ?? t("pair_editor.name_placeholder")}
           autocomplete={nameAutocomplete}
           autocompleteVariables={nameAutocompleteVariables}
           autocompleteFunctions={nameAutocompleteFunctions}
@@ -757,12 +760,12 @@ export function PairEditorRow({
               forcedEnvironmentId={forcedEnvironmentId}
               forceUpdateKey={forceUpdateKey}
               defaultValue={pair.value}
-              label="Value"
+              label={t("common.value")}
               name={`value[${index}]`}
               onChange={handleChangeValueText}
               onFocus={handleFocusValue}
               type={isLast ? "text" : typeof valueType === "function" ? valueType(pair) : valueType}
-              placeholder={valuePlaceholder ?? "value"}
+              placeholder={valuePlaceholder ?? t("pair_editor.value_placeholder")}
               autocomplete={valueAutocomplete?.(pair.name)}
               autocompleteFunctions={valueAutocompleteFunctions}
               autocompleteVariables={valueAutocompleteVariablesFiltered}
@@ -789,7 +792,7 @@ export function PairEditorRow({
             // Ellipsis rather than a chevron: the name and value fields now carry chevrons for
             // picking a suggestion, and this menu acts on the row instead of filling in a field.
             icon={isLast || disabled ? "empty" : "ellipsis_vertical"}
-            title="More actions"
+            title={t("common.more_actions")}
             className="text-text-subtlest"
           />
         </Dropdown>
@@ -941,6 +944,7 @@ function MultilineEditDialog({
   onChange: (value: string) => void;
   hide: () => void;
 }) {
+  const { t } = useTranslation();
   const [value, setValue] = useState<string>(defaultValue);
   const language = languageFromContentType(contentType, value);
   return (
@@ -963,7 +967,7 @@ function MultilineEditDialog({
             hide();
           }}
         >
-          Done
+          {t("common.done")}
         </Button>
       </div>
     </div>

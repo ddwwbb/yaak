@@ -49,15 +49,21 @@ export const resolvedLanguageAtom = atom<ResolvedLanguage>((get) => {
 });
 
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  const parts = path.split(".");
   let current: unknown = obj;
-  for (const part of parts) {
-    if (current == null || typeof current !== "object") {
+  let remaining = path;
+  while (current != null && typeof current === "object") {
+    // Action identifiers (such as sidebar.selected.delete) contain literal dots.
+    if (Object.prototype.hasOwnProperty.call(current, remaining)) {
+      return (current as Record<string, unknown>)[remaining];
+    }
+    const separator = remaining.indexOf(".");
+    if (separator < 0) {
       return undefined;
     }
-    current = (current as Record<string, unknown>)[part];
+    current = (current as Record<string, unknown>)[remaining.slice(0, separator)];
+    remaining = remaining.slice(separator + 1);
   }
-  return current;
+  return undefined;
 }
 
 export function t(
