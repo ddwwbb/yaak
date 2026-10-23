@@ -14,10 +14,9 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import type { WrappedEnvironmentVariable } from "../../hooks/useEnvironmentVariables";
 import { useRandomKey } from "../../hooks/useRandomKey";
 import { useToggle } from "../../hooks/useToggle";
-import { languageFromContentType } from "../../lib/contentType";
 import { showDialog } from "../../lib/dialog";
 import { useTranslation } from "../../lib/i18n";
-import { computeSideForDragMove, DropMarker } from "@yaakapp-internal/ui";
+import { computeSideForDragMove, DropMarker, languageFromContentType } from "@yaakapp-internal/ui";
 import { showPrompt } from "../../lib/prompt";
 import { SelectFile } from "../SelectFile";
 import { Button } from "./Button";

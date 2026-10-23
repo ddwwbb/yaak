@@ -5,7 +5,6 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { useLocalStorage } from "react-use";
 import { useIntrospectGraphQL } from "../../hooks/useIntrospectGraphQL";
-import { useStateWithDeps } from "../../hooks/useStateWithDeps";
 import { showDialog } from "../../lib/dialog";
 import { Button } from "../core/Button";
 import type { DropdownItem } from "../core/Dropdown";
@@ -15,7 +14,7 @@ import { Editor } from "../core/Editor/LazyEditor";
 import { IconButton } from "../core/IconButton";
 import type { RadioDropdownItem } from "../core/RadioDropdown";
 import { RadioDropdown } from "../core/RadioDropdown";
-import { Banner, FormattedError, Icon } from "@yaakapp-internal/ui";
+import { Banner, FormattedError, Icon, useStateWithDeps } from "@yaakapp-internal/ui";
 import { Separator } from "../core/Separator";
 import { tryFormatGraphql } from "../../lib/formatters";
 import { parseGraphQLOperationNames } from "../../lib/graphqlOperationNames";
@@ -155,13 +154,7 @@ function GraphQLEditorInner({ request, onChange, baseRequest, ...extraEditorProp
       onChange(newBody);
       return newBody;
     });
-  }, [
-    currentBody.operationName,
-    onChange,
-    operationNames,
-    parsedOperationNames,
-    setCurrentBody,
-  ]);
+  }, [currentBody.operationName, onChange, operationNames, parsedOperationNames, setCurrentBody]);
 
   const actions = useMemo<EditorProps["actions"]>(
     () => [
@@ -170,23 +163,25 @@ function GraphQLEditorInner({ request, onChange, baseRequest, ...extraEditorProp
           <RadioDropdown
             value={currentBody.operationName ?? operationNames[0] ?? OPERATION_NAME_NOT_SPECIFIED}
             onChange={handleChangeOperationName}
-            items={[
-              { type: "separator", label: "Operation Name" },
-              {
-                label: <span className="text-text-subtle italic">Not specified</span>,
-                value: OPERATION_NAME_NOT_SPECIFIED,
-              },
-              ...operationNames.map((operationName) => ({
-                label: operationName,
-                value: operationName,
-              })),
-            ] satisfies RadioDropdownItem<string>[]}
+            items={
+              [
+                { type: "separator", label: "Operation Name" },
+                {
+                  label: <span className="text-text-subtle italic">Not specified</span>,
+                  value: OPERATION_NAME_NOT_SPECIFIED,
+                },
+                ...operationNames.map((operationName) => ({
+                  label: operationName,
+                  value: operationName,
+                })),
+              ] satisfies RadioDropdownItem<string>[]
+            }
           >
             <Button size="sm" variant="border" title="Select Operation" forDropdown>
               {currentBody.operationName === OPERATION_NAME_NOT_SPECIFIED ? (
                 <span className="text-text-subtle italic">Not specified</span>
               ) : (
-                currentBody.operationName ?? operationNames[0]
+                (currentBody.operationName ?? operationNames[0])
               )}
             </Button>
           </RadioDropdown>
@@ -334,25 +329,25 @@ function GraphQLEditorInner({ request, onChange, baseRequest, ...extraEditorProp
       // Sits after the schema control it depends on. Always rendered, disabled
       // without a schema, so the row never changes shape.
       <div key="documentation" className="opacity-100!">
-          <IconButton
-            size="sm"
-            variant="border"
-            icon="book_open_text"
-            disabled={schema == null}
-            title={
-              schema == null
-                ? "Documentation unavailable without a schema"
-                : isDocOpen
-                  ? "Hide Documentation"
-                  : "Show Documentation"
-            }
-            onClick={() => {
-              setGraphqlDocStateAtomValue((v) => ({
-                ...v,
-                [request.id]: isDocOpen ? undefined : null,
-              }));
-            }}
-          />
+        <IconButton
+          size="sm"
+          variant="border"
+          icon="book_open_text"
+          disabled={schema == null}
+          title={
+            schema == null
+              ? "Documentation unavailable without a schema"
+              : isDocOpen
+                ? "Hide Documentation"
+                : "Show Documentation"
+          }
+          onClick={() => {
+            setGraphqlDocStateAtomValue((v) => ({
+              ...v,
+              [request.id]: isDocOpen ? undefined : null,
+            }));
+          }}
+        />
       </div>,
     ],
     [

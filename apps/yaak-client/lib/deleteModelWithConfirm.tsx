@@ -1,9 +1,9 @@
 import type { AnyModel } from "@yaakapp-internal/models";
-import { deleteModel, modelTypeLabel } from "@yaakapp-internal/models";
+import { deleteModel } from "@yaakapp-internal/models";
 import { InlineCode } from "@yaakapp-internal/ui";
 import { Prose } from "../components/Prose";
 import { showConfirmDelete } from "./confirm";
-import { pluralizeCount } from "./pluralize";
+import { pluralizeCount } from "@yaakapp-internal/lib/pluralize";
 import { t, translatedModelType } from "./i18n";
 import { resolvedModelName } from "./resolvedModelName";
 

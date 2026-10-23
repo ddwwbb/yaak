@@ -1,21 +1,12 @@
 import type { HttpResponse } from "@yaakapp-internal/models";
 import { deleteModel } from "@yaakapp-internal/models";
-import { HStack, Icon } from "@yaakapp-internal/ui";
-import {
-  differenceInHours,
-  differenceInMinutes,
-  format,
-  isToday,
-  isYesterday,
-} from "date-fns";
+import { HStack, Icon, formatMillis, HttpStatusTag, SizeTag } from "@yaakapp-internal/ui";
+import { differenceInHours, differenceInMinutes, format, isToday, isYesterday } from "date-fns";
 import { useDeleteHttpResponses } from "../hooks/useDeleteHttpResponses";
 import { useKeyValue } from "../hooks/useKeyValue";
 import { DismissibleBanner } from "./core/DismissibleBanner";
 import { Dropdown, type DropdownItem } from "./core/Dropdown";
-import { formatMillis } from "./core/HttpResponseDurationTag";
-import { HttpStatusTag } from "./core/HttpStatusTag";
 import { IconButton } from "./core/IconButton";
-import { SizeTag } from "./core/SizeTag";
 
 interface Props {
   responses: HttpResponse[];
@@ -56,7 +47,8 @@ export const RecentHttpResponsesDropdown = function ResponsePane({
     else if (hoursAgo < 6) historyGroup = "3 hours ago";
     else if (isToday(createdAtDate)) historyGroup = "Today";
     else if (isYesterday(createdAtDate)) historyGroup = "Yesterday";
-    else if (createdAtDate.getFullYear() === now.getFullYear()) historyGroup = format(createdAtDate, "MMM d");
+    else if (createdAtDate.getFullYear() === now.getFullYear())
+      historyGroup = format(createdAtDate, "MMM d");
     const absoluteTime = format(createdAt, "MMM d, yyyy, h:mm:ss a O");
 
     if (historyGroup === "Just now") {
