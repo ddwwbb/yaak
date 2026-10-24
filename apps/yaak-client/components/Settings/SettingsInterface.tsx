@@ -32,13 +32,6 @@ const fontSizeOptions = [
   8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
 ].map((n) => ({ label: `${n}`, value: `${n}` }));
 
-const keymaps: { value: EditorKeymap; label: string }[] = [
-  { value: "default", label: "Default" },
-  { value: "vim", label: "Vim" },
-  { value: "vscode", label: "VSCode" },
-  { value: "emacs", label: "Emacs" },
-];
-
 export function SettingsInterface() {
   const workspace = useAtomValue(activeWorkspaceAtom);
   const settings = useAtomValue(settingsAtom);
@@ -47,6 +40,13 @@ export function SettingsInterface() {
   if (settings == null || workspace == null) {
     return null;
   }
+
+  const keymaps: { value: EditorKeymap; label: string }[] = [
+    { value: "default", label: t("settings.interface.keymap_default") },
+    { value: "vim", label: "Vim" },
+    { value: "vscode", label: "VSCode" },
+    { value: "emacs", label: "Emacs" },
+  ];
 
   return (
     <VStack space={1.5} className="mb-4">
@@ -166,25 +166,25 @@ export function SettingsInterface() {
           </SettingRow>
         </SettingsSection>
 
-        <SettingsSection title="Editor">
+        <SettingsSection title={t("settings.interface.editor_section")}>
           <ModelSettingRowSelect
             model={settings}
             modelKey="editorKeymap"
-            title="Editor keymap"
-            description="Keyboard shortcut preset used by text editors."
+            title={t("settings.interface.editor_keymap")}
+            description={t("settings.interface.editor_keymap_desc")}
             options={keymaps}
           />
           <ModelSettingRowBoolean
             model={settings}
             modelKey="editorSoftWrap"
-            title="Wrap editor lines"
-            description="Wrap long lines in request and response editors."
+            title={t("settings.interface.editor_soft_wrap")}
+            description={t("settings.interface.editor_soft_wrap_desc")}
           />
           <ModelSettingRowBoolean
             model={settings}
             modelKey="coloredMethods"
-            title="Colorize request methods"
-            description="Use method-specific colors for HTTP request methods."
+            title={t("settings.interface.colored_methods")}
+            description={t("settings.interface.colored_methods_desc")}
           />
         </SettingsSection>
 
@@ -194,8 +194,8 @@ export function SettingsInterface() {
             <ModelSettingRowBoolean
               model={settings}
               modelKey="hideWindowControls"
-              title="Hide window controls"
-              description="Hide the close, maximize, and minimize controls on Windows or Linux."
+              title={t("settings.interface.hide_window_controls")}
+              description={t("settings.interface.hide_window_controls_desc")}
             />
           )}
         </SettingsSection>
@@ -222,7 +222,7 @@ function NativeTitlebarSetting({ settings }: { settings: Settings }) {
         hideLabel
         size="md"
         checked={nativeTitlebar}
-        title="Native title bar"
+        title={t("settings.interface.native_titlebar")}
         onChange={setNativeTitlebar}
       />
       {settings.useNativeTitlebar !== nativeTitlebar && (
@@ -234,7 +234,7 @@ function NativeTitlebarSetting({ settings }: { settings: Settings }) {
             await rpc("cmd_restart");
           }}
         >
-          Apply and Restart
+          {t("settings.interface.apply_restart")}
         </Button>
       )}
     </SettingRow>

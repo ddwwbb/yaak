@@ -77,9 +77,9 @@ export function SettingsTheme() {
       <div className="mb-3">
         <Heading>{t("settings.theme.title")}</Heading>
         <p className="text-text-subtle">
-          Make Yaak your own by selecting a theme, or{" "}
+          {t("settings.theme.header_desc")}{" "}
           <Link href="https://yaak.app/docs/plugin-development/plugins-quick-start">
-            Create Your Own
+            {t("settings.theme.create_your_own")}
           </Link>
         </p>
       </div>
@@ -100,7 +100,7 @@ export function SettingsTheme() {
             <SettingRowSelect
               name="lightTheme"
               title={t("settings.theme.light_theme")}
-              description="Theme used when Yaak is in light mode."
+              description={t("settings.theme.light_theme_desc")}
               value={activeTheme.data.light.id}
               options={lightThemes}
               onChange={(themeLight) => patchModel(settings, { themeLight })}
@@ -110,7 +110,7 @@ export function SettingsTheme() {
             <SettingRowSelect
               name="darkTheme"
               title={t("settings.theme.dark_theme")}
-              description="Theme used when Yaak is in dark mode."
+              description={t("settings.theme.dark_theme_desc")}
               value={activeTheme.data.dark.id}
               options={darkThemes}
               onChange={(themeDark) => patchModel(settings, { themeDark })}
@@ -118,7 +118,7 @@ export function SettingsTheme() {
           )}
         </SettingsSection>
 
-        <SettingsSection title="Preview">
+        <SettingsSection title={t("settings.theme.preview_section")}>
           <VStack
             space={3}
             className="mt-4 w-full bg-surface p-3 border border-dashed border-border-subtle rounded-sm overflow-x-auto"
@@ -126,7 +126,7 @@ export function SettingsTheme() {
             <HStack className="text" space={1.5}>
               <Icon icon={appearance === "dark" ? "moon" : "sun"} />
               <strong>{activeTheme.data.active.label}</strong>
-              <em>(preview)</em>
+              <em>{t("settings.theme.preview_label")}</em>
             </HStack>
             <HStack space={1.5} className="w-full">
               {buttonColors.map((c, i) => (
