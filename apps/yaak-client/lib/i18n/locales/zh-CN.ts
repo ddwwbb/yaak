@@ -179,6 +179,7 @@ export const zhCN: TranslationKeys = {
       theme: "主题",
       shortcuts: "快捷键",
       plugins: "插件",
+      agents: "智能体",
       certificates: "证书",
       proxy: "代理",
       license: "许可证",

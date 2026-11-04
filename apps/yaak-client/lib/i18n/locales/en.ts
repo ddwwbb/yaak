@@ -177,6 +177,7 @@ export const en = {
       theme: "Theme",
       shortcuts: "Shortcuts",
       plugins: "Plugins",
+      agents: "Agents",
       certificates: "Certificates",
       proxy: "Proxy",
       license: "License",

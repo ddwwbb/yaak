@@ -219,7 +219,7 @@ jobs:
             ### 平台安装包 / Artifacts
             - **Windows x64**: `Yaak___VERSION___x64-setup.exe`
             - **macOS ARM64 (Apple Silicon)**: `Yaak___VERSION___aarch64.dmg`
-            - **Linux ARM64**: `yaak___VERSION___arm64.deb` / `.AppImage`
+            - **Linux ARM64**: `yaak___VERSION___arm64.deb`
           releaseDraft: false
           prerelease: false
           projectPath: ./crates-tauri/yaak-app-client

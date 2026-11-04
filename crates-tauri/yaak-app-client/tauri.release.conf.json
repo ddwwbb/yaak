@@ -30,7 +30,7 @@
     "createUpdaterArtifacts": true,
     "longDescription": "A cross-platform desktop app for interacting with REST, GraphQL, and gRPC",
     "shortDescription": "Play with APIs, intuitively",
-    "targets": ["app", "appimage", "deb", "dmg", "nsis", "rpm"],
+    "targets": ["app", "deb", "dmg", "nsis", "rpm"],
     "macOS": {
       "minimumSystemVersion": "13.0",
       "exceptionDomain": "",
