@@ -72,14 +72,6 @@ jobs:
             runtime: "wry"
             targets: "aarch64-apple-darwin"
 
-          # Linux ARM64
-          - platform: "ubuntu-22.04-arm"
-            args: '--config ./tauri.release.conf.json --config ''{"build":{"features":["updater","license","wry"]}}'''
-            yaak_arch: "arm64"
-            os: "ubuntu"
-            runtime: "wry"
-            targets: ""
-
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 360
     steps:
@@ -104,19 +96,6 @@ jobs:
         with:
           shared-key: release
           cache-on-failure: true
-
-      - name: Install dependencies (Linux only)
-        if: matrix.os == 'ubuntu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libnss3 patchelf xdg-utils
-          if ! command -v clang-18 &> /dev/null; then
-            wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh
-            chmod +x /tmp/llvm.sh
-            sudo /tmp/llvm.sh 18
-          fi
-          echo "CC_wasm32_unknown_unknown=/usr/bin/clang-18" >> "$GITHUB_ENV"
-          echo "AR_wasm32_unknown_unknown=/usr/bin/llvm-ar-18" >> "$GITHUB_ENV"
 
       - name: Install Protoc for plugin-runtime
         uses: arduino/setup-protoc@v3
@@ -232,7 +211,6 @@ jobs:
             ### 平台安装包 / Artifacts
             - **Windows x64**: `Yaak___VERSION___x64-setup.exe`
             - **macOS ARM64 (Apple Silicon)**: `Yaak___VERSION___aarch64.dmg`
-            - **Linux ARM64**: `yaak___VERSION___arm64.deb`
           releaseDraft: false
           prerelease: false
           projectPath: ./crates-tauri/yaak-app-client
