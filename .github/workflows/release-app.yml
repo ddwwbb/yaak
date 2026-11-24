@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "版本号 (留空自动保持与 main 一致，如 2026.9.0)"
+        description: "版本号（main-zh 留空使用 2026.9.1-zh）"
         required: false
         default: ""
       proxy_dry_run:
@@ -38,7 +38,7 @@ jobs:
         id: version_step
         run: node .github/scripts/resolve-version.mjs
         env:
-          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_VERSION: ${{ inputs.version || (github.ref == 'refs/heads/main-zh' && '2026.9.1-zh') || '' }}
 
   build-artifacts:
     name: Build (${{ matrix.os }} - ${{ matrix.yaak_arch }})
