@@ -1,10 +1,10 @@
 import type { ClientCertificate } from "@yaakapp-internal/models";
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
-import { Heading, HStack, InlineCode, VStack } from "@yaakapp-internal/ui";
-import { useTranslation } from "../../lib/i18n";
+import { HStack, InlineCode, SettingsPage, VStack } from "@yaakapp-internal/ui";
 import { useAtomValue } from "jotai";
 import { useRef } from "react";
 import { showConfirmDelete } from "../../lib/confirm";
+import { useTranslation } from "../../lib/i18n";
 import { CommercialUseBanner } from "../CommercialUseBanner";
 import { Button } from "../core/Button";
 import { Checkbox } from "../core/Checkbox";
@@ -201,20 +201,21 @@ export function SettingsCertificates() {
     const cert = certificates[index];
     if (cert == null) return;
 
-    const host = cert.host || "this certificate";
+    const host = cert.host || t("settings.certificates.delete_host_fallback");
     const port = cert.port != null ? `:${cert.port}` : "";
+    const [beforeHost, afterHost] = t("settings.certificates.delete_desc").split("{{host}}", 2);
 
     const confirmed = await showConfirmDelete({
       id: "confirm-remove-certificate",
       title: t("settings.certificates.delete_title"),
       description: (
         <>
-          {t("settings.certificates.delete_desc", { host: `${host}${port}` })}
+          {beforeHost}
           <InlineCode>
             {host}
             {port}
           </InlineCode>
-          ?
+          {afterHost}
         </>
       ),
     });
@@ -227,22 +228,19 @@ export function SettingsCertificates() {
   };
 
   return (
-    <VStack space={3}>
-      <div className="mb-3">
-        <HStack justifyContent="between" alignItems="start">
-          <div>
-            <Heading>{t("settings.certificates.title")}</Heading>
-            <p className="text-text-subtle">{t("settings.certificates.description")}</p>
-          </div>
-          <Button variant="border" size="sm" color="secondary" onClick={handleAdd}>
-            {t("settings.certificates.add_certificate")}
-          </Button>
-        </HStack>
-      </div>
-
-      <CommercialUseBanner source="client-certificates" title="Using certificates for work?" />
-
-      {certificates.length > 0 && (
+    <SettingsPage
+      title={t("settings.certificates.title")}
+      description={t("settings.certificates.description")}
+      actions={
+        <Button variant="border" size="sm" color="secondary" onClick={handleAdd}>
+          {t("settings.certificates.add_certificate")}
+        </Button>
+      }
+      banner={
+        <CommercialUseBanner source="client-certificates" title="Using certificates for work?" />
+      }
+    >
+      {certificates.length > 0 ? (
         <VStack space={3}>
           {certificates.map((cert, index) => (
             <CertificateEditor
@@ -255,7 +253,7 @@ export function SettingsCertificates() {
             />
           ))}
         </VStack>
-      )}
-    </VStack>
+      ) : null}
+    </SettingsPage>
   );
 }

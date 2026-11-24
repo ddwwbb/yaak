@@ -7,6 +7,16 @@ on:
         description: "版本号 (留空自动保持与 main 一致，如 2026.9.0)"
         required: false
         default: ""
+      proxy_dry_run:
+        description: "Build Yaak Proxy in the official repository only (workflow artifacts, no release)"
+        type: boolean
+        required: false
+        default: false
+      proxy_version:
+        description: "Version to stamp into the Proxy dry-run build"
+        type: string
+        required: false
+        default: "0.0.1-dryrun"
   push:
     branches:
       - main-zh
@@ -15,6 +25,7 @@ on:
 
 jobs:
   resolve-version:
+    if: github.event_name != 'workflow_dispatch' || !inputs.proxy_dry_run
     name: Resolve Version
     runs-on: ubuntu-latest
     outputs:
@@ -36,6 +47,7 @@ jobs:
       contents: write
 
     env:
+      RELEASE_TAG: v${{ needs.resolve-version.outputs.version }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -204,7 +216,8 @@ jobs:
           retryAttempts: 3
           # Tauri treats empty Apple credential variables as configured credentials.
           tauriScript: "${{ matrix.os == 'macos' && env.APPLE_CERTIFICATE == '' && 'env -u APPLE_CERTIFICATE -u APPLE_CERTIFICATE_PASSWORD -u APPLE_ID -u APPLE_PASSWORD -u APPLE_TEAM_ID node ../../node_modules/@tauri-apps/cli/tauri.js' || 'node ../../node_modules/@tauri-apps/cli/tauri.js' }}"
-          tagName: "v__VERSION__"
+          tagName: ${{ env.RELEASE_TAG }}
+          includeUpdaterJson: ${{ env.TAURI_PRIVATE_KEY != '' }}
           releaseName: "Yaak v__VERSION__ (中文版)"
           releaseBody: |
             ## Yaak v__VERSION__ (中文版)
@@ -247,20 +260,30 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         run: |
-          Get-ChildItem -Recurse -Path target -File -Filter "*.exe.sig" | Remove-Item -Force
+          $bundleDir = 'target/release/bundle/nsis'
+          $createUpdaterArtifacts = -not [string]::IsNullOrEmpty($env:TAURI_SIGNING_PRIVATE_KEY)
+          $config = @{
+            bundle = @{
+              createUpdaterArtifacts = $createUpdaterArtifacts
+              windows = @{ nsis = @{ installMode = 'perMachine' } }
+            }
+          } | ConvertTo-Json -Depth 5 -Compress
+          Get-ChildItem -Path $bundleDir -File -Filter '*-setup.exe.sig' | Remove-Item -Force
           Push-Location crates-tauri/yaak-app-client
-          npx tauri bundle ${{ matrix.args }} --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":true,"windows":{"nsis":{"installMode":"perMachine"}}}}'
+          npx tauri bundle ${{ matrix.args }} --bundles nsis --config $config
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Pop-Location
-          $setup = Get-ChildItem -Recurse -Path target -Filter "*setup*.exe" | Select-Object -First 1
-          $setupSig = "$($setup.FullName).sig"
+          $setup = Get-ChildItem -Path $bundleDir -File -Filter '*-setup.exe' | Select-Object -First 1
           $dest = $setup.FullName -replace '-setup\.exe$', '-setup-machine.exe'
-          $destSig = "$dest.sig"
           Copy-Item $setup.FullName $dest
-          Copy-Item $setupSig $destSig
-          foreach ($asset in @($dest, $destSig)) {
+          $assets = @($dest)
+          if ($createUpdaterArtifacts) {
+            Copy-Item "$($setup.FullName).sig" "$dest.sig"
+            $assets += "$dest.sig"
+          }
+          foreach ($asset in $assets) {
             for ($attempt = 1; $attempt -le 4; $attempt++) {
-              gh release upload "$env:GITHUB_REF_NAME" "$asset" --clobber
+              gh release upload "$env:RELEASE_TAG" "$asset" --clobber
               if ($LASTEXITCODE -eq 0) { break }
               if ($attempt -eq 4) { exit $LASTEXITCODE }
               Start-Sleep -Seconds 10
@@ -275,3 +298,176 @@ jobs:
           path: ${{ runner.temp }}/yaak-release-artifacts/
           retention-days: 7
           if-no-files-found: warn
+
+  # Yaak Proxy, macOS only, on the same tag and version as Yaak. Its own job, sharing nothing
+  # with Yaak's, so a proxy failure never stops Yaak's artifacts; it fails the run, visibly.
+  #
+  # On a v* tag it runs only once the repository variable RELEASE_PROXY is "true": the website's
+  # download links pick Yaak's assets by suffix and architecture, and its release audit expects
+  # Yaak's exact asset set and this run's success, so the proxy must not join Yaak's release
+  # until the website expects it there. The dry run (workflow_dispatch) runs regardless, and
+  # only keeps workflow artifacts.
+  build-proxy:
+    if: >-
+      github.repository == 'mountain-loop/yaak' && (
+        (github.event_name == 'push' && github.ref_type == 'tag' && vars.RELEASE_PROXY == 'true') ||
+        (github.event_name == 'workflow_dispatch' && inputs.proxy_dry_run)
+      )
+    permissions:
+      contents: write
+
+    name: Build Yaak Proxy
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "aarch64-apple-darwin" # for Arm-based Macs (M1 and above).
+            yaak_arch: "arm64"
+            lipo_arch: "arm64"
+            asset_arch: "aarch64"
+          - target: "x86_64-apple-darwin" # for Intel-based Macs.
+            yaak_arch: "x64"
+            lipo_arch: "x86_64"
+            asset_arch: "x64"
+    runs-on: macos-latest
+    timeout-minutes: 240
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+      PROXY_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.proxy_version }}
+    steps:
+      - name: Checkout yaakapp/app
+        uses: actions/checkout@v4
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "24"
+          cache: true
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # A cache of its own, so the proxy's builds never change what Yaak's jobs restore
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-proxy
+          key: ${{ matrix.target }}
+          cache-on-failure: true
+
+      - name: Install Protoc for plugin-runtime
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: vp install
+
+      - name: Set version
+        run: npm run replace-version -- proxy
+        env:
+          YAAK_VERSION: ${{ env.PROXY_VERSION }}
+
+      - name: Import signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm "$RUNNER_TEMP/certificate.p12"
+          # Lets codesign use the key unattended; without it the first signature can wait on a
+          # prompt nobody answers
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      # Builds the helper for the target and signs it and protoc before bundling (the bundle
+      # config's before-build step), then signs, notarizes and staples the app and makes the
+      # updater archive and its signature.
+      - name: Build, sign and notarize
+        run: >-
+          npm run proxy:bundle --
+          --target ${{ matrix.target }}
+          --bundles dmg
+          --config crates-tauri/yaak-app-proxy/tauri.release.conf.json
+        env:
+          CI: true
+          YAAK_TARGET_ARCH: ${{ matrix.yaak_arch }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # The helper only answers an app signed by this team
+          YAAK_PROXY_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: Verify the bundle
+        run: >-
+          node scripts/verify-proxy-bundle.mjs
+          "target/${{ matrix.target }}/release/bundle/macos/Yaak Proxy.app"
+          --signed
+          --version "$PROXY_VERSION"
+          --arch ${{ matrix.lipo_arch }}
+          --team "$YAAK_PROXY_TEAM_ID"
+        env:
+          YAAK_PROXY_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      # Named Yaak.Proxy_*, so neither people nor tools take them for Yaak's Yaak_* assets.
+      # The app refuses an update not named so (ARTIFACT_PREFIX in yaak-app-proxy's updates.rs).
+      - name: Collect the release assets
+        run: |
+          set -euo pipefail
+          bundle="target/${{ matrix.target }}/release/bundle"
+          version="${PROXY_VERSION#v}"
+          out="$RUNNER_TEMP/yaak-proxy-release"
+          mkdir -p "$out"
+          dmgs=("$bundle"/dmg/*.dmg)
+          if [ "${#dmgs[@]}" -ne 1 ] || [ ! -f "${dmgs[0]}" ]; then
+            echo "Expected one .dmg in $bundle/dmg"; exit 1
+          fi
+          cp "${dmgs[0]}" "$out/Yaak.Proxy_${version}_${{ matrix.asset_arch }}.dmg"
+          cp "$bundle/macos/Yaak Proxy.app.tar.gz" "$out/Yaak.Proxy_${{ matrix.asset_arch }}.app.tar.gz"
+          cp "$bundle/macos/Yaak Proxy.app.tar.gz.sig" "$out/Yaak.Proxy_${{ matrix.asset_arch }}.app.tar.gz.sig"
+          (cd "$out" && shasum -a 256 Yaak.Proxy_* > checksums.txt)
+          ls -l "$out"
+
+      - name: Keep the bundles as workflow artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-${{ env.PROXY_VERSION }}-${{ matrix.asset_arch }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/yaak-proxy-release/
+          retention-days: ${{ env.DRY_RUN == 'true' && 14 || 7 }}
+          if-no-files-found: error
+
+      # Yaak's jobs create the release; the proxy only attaches its own assets.
+      - name: Upload to the release
+        if: env.DRY_RUN != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then break; fi
+            if [ "$attempt" -eq 120 ]; then
+              echo "No release for $GITHUB_REF_NAME after two hours; Yaak's jobs make it"; exit 1
+            fi
+            sleep 60
+          done
+          for asset in "$RUNNER_TEMP"/yaak-proxy-release/Yaak.Proxy_*; do
+            for attempt in 1 2 3 4; do
+              if gh release upload "$GITHUB_REF_NAME" "$asset" --clobber; then
+                break
+              fi
+              if [ "$attempt" -eq 4 ]; then exit 1; fi
+              sleep 10
+            done
+          done

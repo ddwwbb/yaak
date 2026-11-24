@@ -3,8 +3,6 @@ import { deleteModel } from "@yaakapp-internal/models";
 import { HStack, Icon, formatMillis, HttpStatusTag, SizeTag } from "@yaakapp-internal/ui";
 import { differenceInHours, differenceInMinutes, format, isToday, isYesterday } from "date-fns";
 import { useDeleteHttpResponses } from "../hooks/useDeleteHttpResponses";
-import { useKeyValue } from "../hooks/useKeyValue";
-import { DismissibleBanner } from "./core/DismissibleBanner";
 import { Dropdown, type DropdownItem } from "./core/Dropdown";
 import { IconButton } from "./core/IconButton";
 
@@ -21,12 +19,6 @@ export const RecentHttpResponsesDropdown = function ResponsePane({
   onPinnedResponseId,
 }: Props) {
   const deleteAllResponses = useDeleteHttpResponses(activeResponse?.requestId);
-  const movedActionsBannerId = "response-actions-moved-to-response-menu-2026-07-02-v2";
-  const { value: dismissedMovedActions } = useKeyValue<boolean>({
-    namespace: "global",
-    key: ["dismiss-banner", movedActionsBannerId],
-    fallback: false,
-  });
   const latestResponseId = responses[0]?.id ?? "n/a";
   const responseHistoryItems: DropdownItem[] = [];
   let lastHistoryGroup: string | null = null;
@@ -117,20 +109,6 @@ export const RecentHttpResponsesDropdown = function ResponsePane({
           leftSlot: <Icon icon="unpin" />,
           hidden: latestResponseId === activeResponse.id,
           disabled: responses.length === 0,
-        },
-        {
-          type: "content",
-          hidden: dismissedMovedActions === true,
-          label: (
-            <DismissibleBanner
-              id={movedActionsBannerId}
-              color="info"
-              size="xs"
-              className="max-w-72"
-            >
-              <p>Copy and save actions moved to the Response tab menu.</p>
-            </DismissibleBanner>
-          ),
         },
         {
           type: "separator",

@@ -1,14 +1,16 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { platform } from "@yaakapp-internal/platform";
-import { HotkeyProvider } from "@yaakapp-internal/ui";
+import { HotkeyProvider, UiTranslationProvider } from "@yaakapp-internal/ui";
 import classNames from "classnames";
 import { Provider as JotaiProvider } from "jotai";
 import { LazyMotion, MotionConfig } from "motion/react";
 import { lazy, type ReactNode, Suspense } from "react";
+import { ClientEditorHost } from "../components/ClientEditorHost";
 import { GlobalHooks } from "../components/GlobalHooks";
 import RouteError from "../components/RouteError";
 import { useHotkeyContextValue } from "../hooks/useHotKey";
+import { useTranslation } from "../lib/i18n";
 import { jotaiStore } from "../lib/jotai";
 import { queryClient } from "../lib/queryClient";
 
@@ -30,20 +32,33 @@ function RouteComponent() {
     <JotaiProvider store={jotaiStore}>
       <QueryClientProvider client={queryClient}>
         <Hotkeys>
-          <LazyMotion strict features={motionFeatures}>
-            <MotionConfig transition={{ duration: 0.1 }}>
-              <Suspense>
-                <Toasts />
-                <Dialogs />
-                <ContextMenus />
-              </Suspense>
-              <Layout />
-              <GlobalHooks />
-            </MotionConfig>
-          </LazyMotion>
+          <ClientUiTranslation>
+            <ClientEditorHost>
+              <LazyMotion strict features={motionFeatures}>
+                <MotionConfig transition={{ duration: 0.1 }}>
+                  <Suspense>
+                    <Toasts />
+                    <Dialogs />
+                    <ContextMenus />
+                  </Suspense>
+                  <Layout />
+                  <GlobalHooks />
+                </MotionConfig>
+              </LazyMotion>
+            </ClientEditorHost>
+          </ClientUiTranslation>
         </Hotkeys>
       </QueryClientProvider>
     </JotaiProvider>
+  );
+}
+
+function ClientUiTranslation({ children }: { children: ReactNode }) {
+  const { t, resolvedLanguage } = useTranslation();
+  return (
+    <UiTranslationProvider value={resolvedLanguage === "zh-CN" ? t : undefined}>
+      {children}
+    </UiTranslationProvider>
   );
 }
 
@@ -54,7 +69,10 @@ function Hotkeys({ children }: { children: ReactNode }) {
 function Layout() {
   return (
     <div
-      className={classNames("w-full h-full", platform.osType() === "linux" && "border border-border-subtle")}
+      className={classNames(
+        "w-full h-full",
+        platform.osType() === "linux" && "border border-border-subtle",
+      )}
     >
       <Outlet />
     </div>

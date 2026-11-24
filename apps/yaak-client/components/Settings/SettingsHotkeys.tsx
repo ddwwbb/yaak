@@ -1,8 +1,8 @@
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import {
-  Heading,
   HStack,
   Icon,
+  SettingsPage,
   Table,
   TableBody,
   TableCell,
@@ -14,7 +14,6 @@ import {
 import classNames from "classnames";
 import { fuzzyMatch } from "fuzzbunny";
 import { useAtomValue } from "jotai";
-import { useTranslation } from "../../lib/i18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   defaultHotkeys,
@@ -26,6 +25,7 @@ import {
   useHotkeyLabel,
 } from "../../hooks/useHotKey";
 import { showDialog } from "../../lib/dialog";
+import { useTranslation } from "../../lib/i18n";
 import { Button } from "../core/Button";
 import { Dropdown, type DropdownItem } from "../core/Dropdown";
 import { HotkeyRaw } from "../core/Hotkey";
@@ -95,57 +95,58 @@ export function SettingsHotkeys() {
   }
 
   return (
-    <VStack space={3} className="mb-4">
-      <div className="mb-3">
-        <Heading>{t("settings.shortcuts.title")}</Heading>
-        <p className="text-text-subtle">{t("settings.shortcuts.description")}</p>
-      </div>
-      <PlainInput
-        label={t("common.filter")}
-        placeholder={t("settings.shortcuts.filter_placeholder")}
-        defaultValue={filter}
-        onChange={setFilter}
-        hideLabel
-        containerClassName="max-w-xs"
-      />
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeaderCell>{t("settings.shortcuts.scope_col")}</TableHeaderCell>
-            <TableHeaderCell>{t("settings.shortcuts.action_col")}</TableHeaderCell>
-            <TableHeaderCell>{t("settings.shortcuts.shortcut_col")}</TableHeaderCell>
-            <TableHeaderCell></TableHeaderCell>
-          </TableRow>
-        </TableHead>
-        {/* key={filter} forces re-render on filter change to fix Safari table rendering bug */}
-        <TableBody key={filter}>
-          {filteredActions.map((action) => (
-            <HotkeyRow
-              key={action}
-              action={action}
-              currentKeys={hotkeys[action] ?? []}
-              defaultKeys={defaultHotkeys[action]}
-              onSave={async (keys) => {
-                const newHotkeys = { ...settings.hotkeys };
-                if (arraysEqual(keys, defaultHotkeys[action])) {
-                  // Remove from settings if it matches default (use default)
+    <SettingsPage
+      title={t("settings.shortcuts.title")}
+      description={t("settings.shortcuts.description")}
+    >
+      <VStack space={3}>
+        <PlainInput
+          label={t("common.filter")}
+          placeholder={t("settings.shortcuts.filter_placeholder")}
+          defaultValue={filter}
+          onChange={setFilter}
+          hideLabel
+          containerClassName="max-w-xs"
+        />
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell>{t("settings.shortcuts.scope_col")}</TableHeaderCell>
+              <TableHeaderCell>{t("settings.shortcuts.action_col")}</TableHeaderCell>
+              <TableHeaderCell>{t("settings.shortcuts.shortcut_col")}</TableHeaderCell>
+              <TableHeaderCell></TableHeaderCell>
+            </TableRow>
+          </TableHead>
+          {/* key={filter} forces re-render on filter change to fix Safari table rendering bug */}
+          <TableBody key={filter}>
+            {filteredActions.map((action) => (
+              <HotkeyRow
+                key={action}
+                action={action}
+                currentKeys={hotkeys[action] ?? []}
+                defaultKeys={defaultHotkeys[action]}
+                onSave={async (keys) => {
+                  const newHotkeys = { ...settings.hotkeys };
+                  if (arraysEqual(keys, defaultHotkeys[action])) {
+                    // Remove from settings if it matches default (use default)
+                    delete newHotkeys[action];
+                  } else {
+                    // Store the keys (including empty array to disable)
+                    newHotkeys[action] = keys;
+                  }
+                  await patchModel(settings, { hotkeys: newHotkeys });
+                }}
+                onReset={async () => {
+                  const newHotkeys = { ...settings.hotkeys };
                   delete newHotkeys[action];
-                } else {
-                  // Store the keys (including empty array to disable)
-                  newHotkeys[action] = keys;
-                }
-                await patchModel(settings, { hotkeys: newHotkeys });
-              }}
-              onReset={async () => {
-                const newHotkeys = { ...settings.hotkeys };
-                delete newHotkeys[action];
-                await patchModel(settings, { hotkeys: newHotkeys });
-              }}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </VStack>
+                  await patchModel(settings, { hotkeys: newHotkeys });
+                }}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </VStack>
+    </SettingsPage>
   );
 }
 

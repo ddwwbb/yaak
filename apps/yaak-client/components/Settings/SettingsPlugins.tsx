@@ -452,7 +452,6 @@ function BundledPlugins({ plugins }: { plugins: Plugin[] }) {
   );
 }
 
-
 function usePluginUpdates() {
   return useQuery({
     queryKey: ["plugin_updates", usePluginsKey()],

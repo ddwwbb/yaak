@@ -1,8 +1,8 @@
 import { patchModel, settingsAtom } from "@yaakapp-internal/models";
 import type { ProxySetting } from "@yaakapp-internal/models";
-import { Heading, InlineCode, VStack } from "@yaakapp-internal/ui";
-import { useTranslation } from "../../lib/i18n";
+import { InlineCode, SettingsPage } from "@yaakapp-internal/ui";
 import { useAtomValue } from "jotai";
+import { useTranslation } from "../../lib/i18n";
 import { CommercialUseBanner } from "../CommercialUseBanner";
 import {
   SettingRowBoolean,
@@ -14,7 +14,7 @@ import {
 
 export function SettingsProxy() {
   const settings = useAtomValue(settingsAtom);
-  const { t } = useTranslation();
+  const { t, resolvedLanguage } = useTranslation();
   const proxy = enabledProxyOrDefault(settings.proxy);
 
   const patchProxy = async (patch: Partial<EnabledProxySetting>) => {
@@ -28,12 +28,11 @@ export function SettingsProxy() {
   };
 
   return (
-    <VStack space={1.5} className="mb-4">
-      <div className="mb-3">
-        <Heading>{t("settings.proxy.title")}</Heading>
-        <p className="text-text-subtle">{t("settings.proxy.description")}</p>
-      </div>
-      <CommercialUseBanner source="proxy-settings" title="Using a proxy for work?" />
+    <SettingsPage
+      title={t("settings.proxy.title")}
+      description={t("settings.proxy.description")}
+      banner={<CommercialUseBanner source="proxy-settings" title="Using a proxy for work?" />}
+    >
       <SettingsList className="space-y-8">
         <SettingsSection title={t("settings.proxy.mode_title")}>
           <SettingRowSelect
@@ -70,7 +69,15 @@ export function SettingsProxy() {
               />
               <SettingRowText
                 name="proxyHttp"
-                title={t("settings.proxy.http_traffic")}
+                title={
+                  resolvedLanguage === "zh-CN" ? (
+                    t("settings.proxy.http_traffic")
+                  ) : (
+                    <>
+                      Proxy for <InlineCode>http://</InlineCode> traffic
+                    </>
+                  )
+                }
                 description={t("settings.proxy.http_traffic_desc")}
                 value={settings.proxy.http}
                 placeholder="localhost:9090"
@@ -78,7 +85,15 @@ export function SettingsProxy() {
               />
               <SettingRowText
                 name="proxyHttps"
-                title={t("settings.proxy.https_traffic")}
+                title={
+                  resolvedLanguage === "zh-CN" ? (
+                    t("settings.proxy.https_traffic")
+                  ) : (
+                    <>
+                      Proxy for <InlineCode>https://</InlineCode> traffic
+                    </>
+                  )
+                }
                 description={t("settings.proxy.https_traffic_desc")}
                 value={settings.proxy.https}
                 placeholder="localhost:9090"
@@ -151,7 +166,7 @@ export function SettingsProxy() {
           </>
         )}
       </SettingsList>
-    </VStack>
+    </SettingsPage>
   );
 }
 
